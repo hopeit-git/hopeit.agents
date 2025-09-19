@@ -1,0 +1,69 @@
+"""Unit tests for the MCP bridge client helpers."""
+
+from __future__ import annotations
+
+from collections.abc import AsyncGenerator
+from contextlib import asynccontextmanager
+from typing import Any
+
+import pytest
+from mcp import types
+
+from hopeit_agents.mcp_client.client import MCPClient
+from hopeit_agents.mcp_client.models import BridgeConfig, Transport
+
+
+def _bridge_config() -> BridgeConfig:
+    return BridgeConfig(
+        transport=Transport.HTTP,
+        host="127.0.0.1",
+        port=8765,
+        tool_cache_seconds=100.0,
+        list_timeout_seconds=1.0,
+        call_timeout_seconds=1.0,
+    )
+
+
+class DummySession:
+    def __init__(self) -> None:
+        self.list_calls = 0
+
+    async def initialize(self) -> None:  # pragma: no cover - no-op
+        return None
+
+    async def list_tools(self) -> types.ListToolsResult:
+        self.list_calls += 1
+        tool = types.Tool(
+            name="demo/tool.sum",
+            title="Sum",
+            description="Add two numbers",
+            inputSchema={"type": "object"},
+            outputSchema={"type": "object"},
+            annotations=None,
+        )
+        return types.ListToolsResult(tools=[tool])
+
+    async def __aexit__(self, *_args: Any) -> None:  # pragma: no cover - compatibility
+        return None
+
+
+@pytest.mark.asyncio
+async def test_list_tools_uses_cache(monkeypatch: pytest.MonkeyPatch) -> None:
+    client = MCPClient(config=_bridge_config())
+
+    session_holder: list[Any] = []
+
+    @asynccontextmanager
+    async def fake_session(self: MCPClient) -> AsyncGenerator[DummySession, None]:
+        session = DummySession()
+        session_holder.append(session)
+        yield session
+
+    monkeypatch.setattr(MCPClient, "_session", fake_session, raising=False)
+
+    tools_first = await client.list_tools()
+    tools_second = await client.list_tools()
+
+    assert tools_first == tools_second
+    assert len(session_holder) == 1
+    assert session_holder[0].list_calls == 1

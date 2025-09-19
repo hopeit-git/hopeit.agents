@@ -1,0 +1,48 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "mcp_server",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "hopeit_agents.mcp_server.cli.server",
+      "args": [
+        "run",
+        "--host",
+        "127.0.0.1",
+        "--port",
+        "8765",
+        "--config-files",
+        "plugins/mcp/mcp-server/config/dev-noauth.json,plugins/mcp/mcp-server/config/plugin-config.json,examples/plugins/example-tool/config/plugin-config.json"
+      ],
+      "cwd": "${workspaceFolder}",
+      "env": {
+        "MCP_RANDOM_SEED": "1234"
+      },
+      "console": "integratedTerminal",
+      "justMyCode": false
+    },
+        {
+      "name": "mcp_client",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "hopeit.server.web",
+      "args": [
+        "--host",
+        "127.0.0.1",
+        "--port",
+        "8766",
+        "--config-files",
+        "plugins/mcp/mcp-server/config/dev-noauth.json,plugins/mcp/mcp-client/config/plugin-config.json",
+        "--api-auto",
+        "mcp_client;mcp_client;1.0"
+      ],
+      "cwd": "${workspaceFolder}",
+      "env": {
+        "MCP_RANDOM_SEED": "1234"
+      },
+      "console": "integratedTerminal",
+      "justMyCode": false
+    }
+  ]
+}

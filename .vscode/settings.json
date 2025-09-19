@@ -1,0 +1,9 @@
+{
+    "makefile.configureOnOpen": false,
+    "python.testing.pytestArgs": [
+        "plugins/mcp/mcp-server/test",
+        "plugins/mcp/mcp-client/test"
+    ],
+    "python.testing.unittestEnabled": false,
+    "python.testing.pytestEnabled": true
+}

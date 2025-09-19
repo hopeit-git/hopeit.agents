@@ -1,0 +1,110 @@
+[project]
+name = "hopeit_agents.workspace"
+version = "0.1.0"
+
+requires-python = ">=3.12"
+
+description = "Workspace for hopeit_agents plugins and examples"
+license = { text = "Apache 2" }
+authors = [
+    { name = "Leo Smerling & Pablo Canto", email = "contact@hopeit.com.ar" },
+    { name = "Leo Smerling", email = "contact@hopeit.com.ar" },
+    { name = "Pablo Canto", email = "contact@hopeit.com.ar" },
+]
+classifiers = [
+    "License :: OSI Approved :: Apache Software License",
+    "Intended Audience :: Developers",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Development Status :: 3 - Alpha",
+    "Operating System :: POSIX :: Linux",
+    "Operating System :: MacOS :: MacOS X",
+    "Operating System :: Microsoft :: Windows",
+    "Framework :: AsyncIO",
+]
+dynamic = ["readme"]
+dependencies = [
+    "hopeit-agents.mcp-server",
+    "hopeit-agents.mcp-client",
+    "hopeit-agents-example-tool",
+]
+
+[tool.uv]
+package = false
+dev-dependencies = [
+    "mypy>=1.13.0",
+    "pytest>=8.3.3",
+    "pytest-aiohttp>=1.0.5",
+    "pytest-asyncio>=0.25.3,<1.1",
+    "pytest-mock>=3.14.0",
+    "coverage>=7.6.0",
+    "ruff>=0.9.7",
+    "isort>=5.13.2",
+    "aiohttp>=3.10.0",
+    "types-requests>=2.32.0",
+    "types-aiofiles>=24.1.0",
+    "types-redis>=4.6.0",
+    "uvloop>=0.21.0",
+    "anyio>=4.10.0",
+    "mcp[cli]>=1.14.1",
+]
+
+[tool.uv.sources]
+hopeit-agents-mcp-server = { path = "plugins/mcp/mcp-server" }
+hopeit-agents-mcp-client = { path = "plugins/mcp/mcp-client" }
+hopeit-agents-example-tool = { path = "examples/plugins/example-tool" }
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+warn_redundant_casts = true
+warn_unused_configs = true
+warn_unused_ignores = true
+disallow_any_generics = true
+disallow_subclassing_any = true
+disallow_untyped_calls = false
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+disallow_any_unimported = true
+allow_untyped_decorators = true
+enable_error_code = ["truthy-bool", "redundant-expr"]
+show_error_codes = true
+pretty = true
+
+[tool.ruff]
+line-length = 100
+src = [
+    "plugins/mcp/mcp-server/src",
+    "plugins/mcp/mcp-client/src",
+    "examples/plugins/example-tool/src"
+]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP"]
+ignore = ["D203", "D213"]
+
+[tool.ruff.lint.per-file-ignores]
+"**/test/**/*.py" = [
+    "D",
+    "S101",
+    "ARG001",
+    "ARG002",
+    "ARG003",
+    "ARG005",
+    "ANN001",
+    "ANN002",
+    "ANN003",
+    "ANN202",
+    "PYI034",
+]
+
+[tool.ruff.lint.extend-per-file-ignores]
+"engine/test/**/test_*.py" = ["F401", "F811"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+addopts = "-q"
+
+[tool.setuptools.dynamic]
+readme = { file = ["README.md"], content-type = "text/markdown" }

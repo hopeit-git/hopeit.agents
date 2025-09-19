@@ -1,0 +1,42 @@
+[project]
+name = "hopeit-agents.mcp-server"
+version = "0.1.0"
+
+description = "Model Context Protocol server for hopeit AI tools"
+dynamic = ["readme"]
+
+dependencies = [
+    "hopeit.engine>=0.27.0",
+    "mcp>=1.14.1",
+    "anyio>=4.10.0",
+    "click>=8.1.8",
+]
+
+license = { text = "Apache 2" }
+authors = [
+    { name = "hopeit-agents contributors", email = "opensource@hopeit.com.ar" }
+]
+classifiers = [
+    "License :: OSI Approved :: Apache Software License",
+    "Intended Audience :: Developers",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Development Status :: 3 - Alpha",
+    "Framework :: AsyncIO",
+]
+
+[project.urls]
+"Homepage" = "https://github.com/hopeit-git/hopeit.agents"
+
+[tool.setuptools]
+include-package-data = true
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.dynamic]
+readme = { file = ["README.md"], content-type = "text/markdown" }
+
+[project.scripts]
+hopeit_mcp_server = "hopeit_agents.mcp_server.cli.server:server"

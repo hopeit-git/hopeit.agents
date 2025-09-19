@@ -1,0 +1,40 @@
+[project]
+name = "hopeit-agents.mcp-client"
+version = "0.1.0"
+
+description = "Hopeit plugin bridging to Model Context Protocol tools"
+dynamic = ["readme"]
+
+dependencies = [
+    "hopeit.engine>=0.27.0",
+    "mcp>=0.4.0",
+    "anyio>=4.10.0",
+]
+
+license = { text = "Apache 2" }
+authors = [
+    { name = "hopeit-agents contributors", email = "opensource@hopeit.com.ar" }
+]
+classifiers = [
+    "License :: OSI Approved :: Apache Software License",
+    "Intended Audience :: Developers",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Development Status :: 3 - Alpha",
+    "Framework :: AsyncIO",
+]
+
+[project.urls]
+"Homepage" = "https://github.com/hopeit-git/hopeit_agents"
+
+[tool.setuptools]
+include-package-data = true
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.dynamic]
+readme = { file = ["README.md"], content-type = "text/markdown" }

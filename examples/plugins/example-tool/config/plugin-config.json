@@ -1,0 +1,19 @@
+{
+  "app": {
+    "name": "hopeit-agents-example-tool",
+    "version": "0.1"
+  },
+  "engine": {
+    "import_modules": ["hopeit_agents.example_tool"]
+  },
+  "settings": {
+  },
+  "events": {
+    "tool.generate_random": {
+      "type": "POST"
+    },
+    "tool.sum_two_numbers": {
+      "type": "POST"
+    }
+  }
+}
