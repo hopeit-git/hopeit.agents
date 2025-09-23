@@ -19,7 +19,7 @@ jobs:
       matrix:
         stage: ["lint", "test"]
         python-version: ["3.12", "3.13"]
-      max-parallel: 2
+      max-parallel: 4
 
     steps:
     - uses: actions/checkout@v4
