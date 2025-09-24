@@ -1,0 +1,14 @@
+{
+  "app": {
+    "name": "hopeit-agents-agent-tools",
+    "version": "0.1"
+  },
+  "engine": {
+    "import_modules": ["hopeit_agents.agent_tools"],
+    "cors_origin": "*"
+  },
+  "settings": {
+  },
+  "events": {
+  }
+}

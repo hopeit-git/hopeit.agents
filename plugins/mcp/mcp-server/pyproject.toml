@@ -8,7 +8,6 @@ dynamic = ["readme"]
 dependencies = [
     "hopeit.engine>=0.27.0",
     "mcp>=1.14.1",
-    "anyio>=4.10.0",
     "click>=8.1.8",
 ]
 
