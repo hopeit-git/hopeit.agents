@@ -3,26 +3,21 @@
 from __future__ import annotations
 
 import json
-from collections.abc import Sequence
 from typing import Any
 
 from hopeit.app.context import EventContext
 from hopeit.app.logger import app_extra_logger
 
-from hopeit_agents.mcp_client.api import (
-    invoke_tool as bridge_invoke_tool,
-)
-from hopeit_agents.mcp_client.api import (
-    list_tools as bridge_list_tools,
-)
-from hopeit_agents.mcp_client.client import MCPClientError
+from hopeit_agents.mcp_client.client import MCPClient, MCPClientError
 from hopeit_agents.mcp_client.models import (
+    BridgeConfig,
     ToolCallRecord,
     ToolCallRequestLog,
     ToolDescriptor,
     ToolExecutionResult,
     ToolInvocation,
 )
+from hopeit_agents.mcp_client.settings import build_environment
 
 logger, extra = app_extra_logger()
 
@@ -38,6 +33,7 @@ __all__ = [
 
 
 async def resolve_tool_prompt(
+    config: BridgeConfig,
     context: EventContext,
     *,
     agent_id: str,
@@ -49,8 +45,10 @@ async def resolve_tool_prompt(
     if not enable_tools or not template:
         return None
 
+    env = build_environment(config, context.env)
+    client = MCPClient(config=config, env=env)
     try:
-        tools = await bridge_list_tools.list_tools(None, context)
+        tools = await client.list_tools()
     except MCPClientError as exc:
         logger.warning(
             context,
@@ -59,7 +57,7 @@ async def resolve_tool_prompt(
         )
         return None
     except Exception as exc:  # pragma: no cover - defensive guardrail
-        logger.warning(
+        logger.error(
             context,
             "agent_tool_prompt_unexpected_error",
             extra=extra(agent_id=agent_id, error=repr(exc)),
@@ -115,6 +113,7 @@ def format_tool_descriptions(
 
 
 async def call_tool(
+    config: BridgeConfig,
     context: EventContext,
     *,
     tool_name: str,
@@ -122,25 +121,39 @@ async def call_tool(
     session_id: str | None = None,
 ) -> ToolExecutionResult:
     """Execute an MCP tool through the bridge using the provided payload."""
-    invocation = ToolInvocation(
+    env = build_environment(config, context.env)
+    client = MCPClient(config=config, env=env)
+    args = ToolInvocation(
         call_id="call_123",
         tool_name=tool_name,
         payload=payload,
         session_id=session_id,
     )
-    return await bridge_invoke_tool.invoke_tool(invocation, context)
+    try:
+        return await client.call_tool(
+            args.tool_name, args.payload, call_id=args.call_id, session_id=args.session_id
+        )
+    except MCPClientError as exc:
+        logger.error(
+            context,
+            "mcp_invoke_tool_error",
+            extra=extra(tool_name=args.tool_name, details=exc.details),
+        )
+        raise
 
 
 async def execute_tool_calls(
+    config: BridgeConfig,
     context: EventContext,
     *,
-    tool_calls: Sequence[ToolInvocation],
+    tool_calls: list[ToolInvocation],
     session_id: str | None = None,
 ) -> list[ToolCallRecord]:
     """Execute multiple tool calls capturing request and response data."""
     records: list[ToolCallRecord] = []
     for tool_call in tool_calls:
         result = await call_tool(
+            config,
             context,
             tool_name=tool_call.tool_name,
             payload=tool_call.payload,

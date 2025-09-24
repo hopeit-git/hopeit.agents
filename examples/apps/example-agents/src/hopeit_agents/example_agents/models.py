@@ -1,53 +1,35 @@
-"""Data objects for the example tool."""
+"""Run an agent conversation combining model completions and MCP tool calls."""
 
-from hopeit.dataobjects import dataclass, dataobject
+from typing import Any
 
+from hopeit.app.logger import app_extra_logger
+from hopeit.dataobjects import dataclass, dataobject, field
 
-@dataobject
-@dataclass
-class MinMaxRange:
-    """Specify a minimun and maximun integer"""
+from hopeit_agents.mcp_client.agent_tooling import (
+    ToolCallRecord,
+)
+from hopeit_agents.model_client.models import Conversation, Message
 
-    min: int = 0
-    max: int = 100
-
-
-@dataobject
-@dataclass
-class RandomNumberRequest:
-    """Request payload for the random number tool."""
-
-    range: MinMaxRange
+logger, extra = app_extra_logger()
 
 
 @dataobject
 @dataclass
-class RandomNumberResult:
-    """Generated random number result"""
+class AgentRequest:
+    """Incoming agent instruction."""
 
-    value: int
-
-
-@dataobject
-@dataclass
-class RandomNumberResponse:
-    """Tool response containing the generated value."""
-
-    result: RandomNumberResult
+    agent_id: str
+    user_message: str
+    conversation: Conversation | None = None
+    metadata: dict[str, Any] = field(default_factory=dict)
 
 
 @dataobject
 @dataclass
-class SumTwoNumberRequest:
-    """Request payload for the sum two numbers tool."""
+class AgentResponse:
+    """Agent execution output."""
 
-    a: int
-    b: int
-
-
-@dataobject
-@dataclass
-class SumTwoNumberResponse:
-    """Response for the sum two numbers tool."""
-
-    result: int
+    agent_id: str
+    conversation: Conversation
+    assistant_message: Message
+    tool_calls: list[ToolCallRecord] = field(default_factory=list)

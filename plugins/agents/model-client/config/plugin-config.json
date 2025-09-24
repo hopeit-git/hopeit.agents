@@ -8,7 +8,20 @@
     "cors_origin": "*"
   },
   "settings": {
+    "model_client": {
+      "api_base": "${AGENT_MODEL_API_BASE}",
+      "api_key_env": "OPENAI_API_KEY",
+      "default_model": "${AGENT_MODEL_NAME}",
+      "timeout_seconds": 30.0,
+      "extra_headers": {
+        "OpenAI-Beta": "assistants=v1"
+      }
+    }
   },
   "events": {
+    "api.generate": {
+      "type": "POST",
+      "setting_keys": ["model_client"]
+    }
   }
 }

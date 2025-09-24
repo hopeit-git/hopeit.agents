@@ -7,6 +7,7 @@ from typing import Any, NamedTuple, get_origin
 from hopeit.app.config import AppConfig, AppDescriptor, EventDescriptor, EventPlugMode, EventType
 from hopeit.server.imports import find_event_handler
 from hopeit.server.logger import engine_logger
+from hopeit.server.names import spinalcase
 from mcp import types
 from pydantic import TypeAdapter
 
@@ -172,15 +173,15 @@ def _extract_event_tool_spec(
     app_config: AppConfig, event_name: str, event_info: EventDescriptor
 ) -> dict[str, Any]:
     """
-    Extract __api__ definition from event implementation
+    Extract __mcp__ definition from event implementation
     """
     module = find_event_handler(app_config=app_config, event_name=event_name, event_info=event_info)
-    if hasattr(module, "__api__"):
-        method_spec = module.__api__
+    if hasattr(module, "__mcp__"):
+        method_spec = module.__mcp__
         if isinstance(method_spec, dict):
             return method_spec
         return method_spec(module, app_config, event_name, None)  # type: ignore[no-any-return]
-    raise TypeError(f"Missing __api__ spec for event: {app_config.app_key}.{event_name}")
+    raise TypeError(f"Missing __mcp__ spec for event: {app_config.app_key}.{event_name}")
 
 
 def app_tool_name(
@@ -204,4 +205,4 @@ def app_tool_name(
         if override_route_name[0] == "/"
         else [override_route_name]
     )
-    return "/".join(components)
+    return "/".join(spinalcase(x) for x in components)

@@ -21,7 +21,10 @@ __api__ = event_api(
 logger, extra = app_extra_logger()
 
 
-async def list_tools(payload: None, context: EventContext) -> list[ToolDescriptor]:
+async def list_tools(
+    payload: None,
+    context: EventContext,
+) -> list[ToolDescriptor]:
     """Return tool descriptors using the configured MCP server."""
     config = context.settings(key="mcp_client", datatype=BridgeConfig)
     env = build_environment(config, context.env)

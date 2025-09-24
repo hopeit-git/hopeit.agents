@@ -11,7 +11,7 @@ from ..models import RandomNumberRequest, RandomNumberResponse, RandomNumberResu
 
 __steps__ = ["generate_random"]
 
-__api__ = event_tool_api(
+__mcp__ = event_tool_api(
     summary="hopeit_agents example tool: generate random number",
     payload=(RandomNumberRequest, "Random number request"),
     response=(RandomNumberResponse, "Random number response"),

@@ -26,7 +26,7 @@ classifiers = [
 ]
 
 [project.urls]
-"Homepage" = "https://github.com/hopeit-git/hopeit_agents"
+"Homepage" = "https://github.com/hopeit-git/hopeit.agents"
 
 [tool.setuptools]
 include-package-data = true

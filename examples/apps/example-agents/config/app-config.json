@@ -7,6 +7,15 @@
     "import_modules": ["hopeit_agents.example_agents"]
   },
   "settings": {
+  "model_client": {
+      "api_base": "${AGENT_MODEL_API_BASE}",
+      "api_key_env": "OPENAI_API_KEY",
+      "default_model": "${AGENT_MODEL_NAME}",
+      "timeout_seconds": 30.0,
+      "extra_headers": {
+        "OpenAI-Beta": "assistants=v1"
+      }
+    },
   "mcp_client_example_tools": {
       "transport": "http",
       "url": "http://127.0.0.1:8765/mcp",
@@ -15,15 +24,27 @@
       "tool_cache_seconds": 10.0,
       "list_timeout_seconds": 5.0,
       "call_timeout_seconds": 60.0
+    },
+    "main_agent": {
+      "system_prompt": "You are a helpful agent that can call tools via MCP.",
+      "enable_tools": true,
+      "tool_prompt_template": "You can call ONLY the following tools when needed. Return tool calls with JSON arguments that follow the schema.\n{tool_descriptions}",
+      "include_tool_schemas_in_prompt": true
+    },
+    "expert_agent": {
+      "system_prompt": "You are a helpful agent that can generate random integer numbers and make operations using the availanle tools via MCP.",
+      "enable_tools": true,
+      "tool_prompt_template": "You can call ONLY the following tools when needed. Return tool calls with JSON arguments that follow the schema.\n{tool_descriptions}",
+      "include_tool_schemas_in_prompt": true
     }
   },
   "events": {
     "agents.main_agent": {
       "type": "POST"
     },
-    "agents.specialized_agent": {
+    "agents.expert_agent": {
       "type": "POST",
-      "setting_keys": ["mcp_client_example_tools"]
+      "setting_keys": ["expert_agent", "model_client", "mcp_client_example_tools"]
     }
   }
 }

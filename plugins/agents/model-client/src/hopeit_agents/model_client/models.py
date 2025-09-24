@@ -23,8 +23,8 @@ class ToolCall:
     """Represents a tool call issued by the assistant."""
 
     call_id: str
-    name: str
-    arguments: dict[str, Any]
+    tool_name: str
+    payload: dict[str, Any]
 
 
 @dataobject
@@ -144,8 +144,8 @@ def tool_call_from_openai_dict(tool: dict[str, Any]) -> ToolCall:
         parsed_args = {"raw": arguments_data}
     return ToolCall(
         call_id=str(tool.get("id", "")),
-        name=str(tool.get("function", {}).get("name", "")),
-        arguments=parsed_args,
+        tool_name=str(tool.get("function", {}).get("name", "")),
+        payload=parsed_args,
     )
 
 

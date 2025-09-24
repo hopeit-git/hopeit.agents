@@ -153,6 +153,7 @@ class BridgeConfig:
     host: str | None = None
     port: int | None = None
     cwd: str | None = None
+    env: dict[str, str] = field(default_factory=dict)
     tool_cache_seconds: float = 30.0
     list_timeout_seconds: float = 10.0
     call_timeout_seconds: float = 60.0

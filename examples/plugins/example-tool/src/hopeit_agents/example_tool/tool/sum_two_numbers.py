@@ -9,7 +9,7 @@ from ..models import SumTwoNumberRequest, SumTwoNumberResponse
 
 __steps__ = ["sum_two_numbers"]
 
-__api__ = event_tool_api(
+__mcp__ = event_tool_api(
     summary="hopeit_agents example tool: sum two numbers",
     payload=(SumTwoNumberRequest, "Sum two numbers request"),
     response=(SumTwoNumberResponse, "Sum two numbers response"),
