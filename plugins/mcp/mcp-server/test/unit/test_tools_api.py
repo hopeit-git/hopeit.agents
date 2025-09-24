@@ -10,7 +10,7 @@ def test_app_tool_name_without_plugin() -> None:
 
     tool_name = api.app_tool_name(app, event_name="tool.sum_two_numbers")
 
-    assert tool_name == "demo-app/tool.sum_two_numbers"
+    assert tool_name == "demo-app/tool-sum-two-numbers"
 
 
 def test_app_tool_name_with_plugin() -> None:
@@ -23,7 +23,7 @@ def test_app_tool_name_with_plugin() -> None:
         plugin=plugin,
     )
 
-    assert tool_name == "demo-app/plugin/tool.sum_two_numbers"
+    assert tool_name == "demo-app/plugin/tool-sum-two-numbers"
 
 
 def test_app_tool_name_uses_override_route() -> None:
