@@ -25,7 +25,7 @@ classifiers = [
 ]
 dynamic = ["readme"]
 dependencies = [
-    "hopeit-agents.agent-tools",
+    "hopeit-agents.model-client",
     "hopeit-agents.mcp-server",
     "hopeit-agents.mcp-client",
     "hopeit-agents-example-agents",
@@ -53,7 +53,7 @@ dev-dependencies = [
 ]
 
 [tool.uv.sources]
-hopeit-agents-agent-tools = { path = "plugins/agents/agent-tools" }
+hopeit-agents-model-client = { path = "plugins/agents/model-client" }
 hopeit-agents-mcp-server = { path = "plugins/mcp/mcp-server" }
 hopeit-agents-mcp-client = { path = "plugins/mcp/mcp-client" }
 hopeit-agents-example-tool = { path = "examples/plugins/example-tool" }
@@ -79,7 +79,7 @@ pretty = true
 [tool.ruff]
 line-length = 100
 src = [
-    "plugins/agents/agent-tools/src",
+    "plugins/agents/model-client/src",
     "plugins/mcp/mcp-server/src",
     "plugins/mcp/mcp-client/src",
     "examples/apps/example-agents/src",
