@@ -102,7 +102,7 @@ class MCPClient:
 
     @asynccontextmanager
     async def _session(self) -> AsyncIterator[ClientSession]:
-        transport = self._config.transport_enum()
+        transport = self._config.transport
         if transport is Transport.HTTP:
             url = self._config.url
             if not url:

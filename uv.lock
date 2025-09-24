@@ -455,6 +455,23 @@ wheels = [
 ]
 
 [[package]]
+name = "hopeit-agents-example-agents"
+version = "0.1.0"
+source = { directory = "examples/apps/example-agents" }
+dependencies = [
+    { name = "hopeit-agents-mcp-client" },
+    { name = "hopeit-agents-mcp-server" },
+    { name = "hopeit-engine" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "hopeit-agents-mcp-client" },
+    { name = "hopeit-agents-mcp-server" },
+    { name = "hopeit-engine", specifier = ">=0.27.0" },
+]
+
+[[package]]
 name = "hopeit-agents-example-tool"
 version = "0.1.0"
 source = { directory = "examples/plugins/example-tool" }
@@ -510,6 +527,7 @@ name = "hopeit-agents-workspace"
 version = "0.1.0"
 source = { virtual = "." }
 dependencies = [
+    { name = "hopeit-agents-example-agents" },
     { name = "hopeit-agents-example-tool" },
     { name = "hopeit-agents-mcp-client" },
     { name = "hopeit-agents-mcp-server" },
@@ -536,6 +554,7 @@ dev = [
 
 [package.metadata]
 requires-dist = [
+    { name = "hopeit-agents-example-agents", directory = "examples/apps/example-agents" },
     { name = "hopeit-agents-example-tool", directory = "examples/plugins/example-tool" },
     { name = "hopeit-agents-mcp-client", directory = "plugins/mcp/mcp-client" },
     { name = "hopeit-agents-mcp-server", directory = "plugins/mcp/mcp-server" },

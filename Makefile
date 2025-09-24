@@ -8,12 +8,14 @@ UV_RUN = $(UV) run --no-sync
 MODULES = \
 	plugins/mcp/mcp-server \
 	plugins/mcp/mcp-client \
-	examples/plugins/example-tool
+	examples/plugins/example-tool \
+	examples/apps/example-agents
 
 MYPY_TARGETS = \
 	plugins/mcp/mcp-server:hopeit_agents.mcp_server \
 	plugins/mcp/mcp-client:hopeit_agents.mcp_client \
-	examples/plugins/example-tool:hopeit_agents.example_tool
+	examples/plugins/example-tool:hopeit_agents.example_tool \
+	examples/apps/example-agents:hopeit_agents.example_agents
 
 env:
 	$(UV) venv --seed --python $(PYTHON)

@@ -1,14 +1,13 @@
 {
   "app": {
-    "name": "hopeit-agents-mcp-client",
+    "name": "hopeit-agents-example-agents",
     "version": "0.1"
   },
   "engine": {
-    "import_modules": ["hopeit_agents.mcp_client"],
-    "cors_origin": "*"
+    "import_modules": ["hopeit_agents.example_agents"]
   },
   "settings": {
-    "mcp_client": {
+  "mcp_client_example_tools": {
       "transport": "http",
       "url": "http://127.0.0.1:8765/mcp",
       "host": "127.0.0.1",
@@ -19,13 +18,12 @@
     }
   },
   "events": {
-    "api.list_tools": {
-      "type": "GET",
-      "setting_keys": ["mcp_client"]
+    "agents.main_agent": {
+      "type": "POST"
     },
-    "api.invoke_tool": {
+    "agents.specialized_agent": {
       "type": "POST",
-      "setting_keys": ["mcp_client"]
+      "setting_keys": ["mcp_client_example_tools"]
     }
   }
 }

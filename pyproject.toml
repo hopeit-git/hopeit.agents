@@ -28,6 +28,7 @@ dependencies = [
     "hopeit-agents.mcp-server",
     "hopeit-agents.mcp-client",
     "hopeit-agents-example-tool",
+    "hopeit-agents-example-agents",
 ]
 
 [tool.uv]
@@ -54,6 +55,7 @@ dev-dependencies = [
 hopeit-agents-mcp-server = { path = "plugins/mcp/mcp-server" }
 hopeit-agents-mcp-client = { path = "plugins/mcp/mcp-client" }
 hopeit-agents-example-tool = { path = "examples/plugins/example-tool" }
+hopeit-agents-example-agents = { path = "examples/apps/example-agents" }
 
 [tool.mypy]
 python_version = "3.12"
@@ -77,7 +79,8 @@ line-length = 100
 src = [
     "plugins/mcp/mcp-server/src",
     "plugins/mcp/mcp-client/src",
-    "examples/plugins/example-tool/src"
+    "examples/plugins/example-tool/src",
+    "examples/apps/example-agents/src",
 ]
 
 [tool.ruff.lint]
