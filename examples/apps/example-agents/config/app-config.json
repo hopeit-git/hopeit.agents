@@ -53,7 +53,8 @@
         "expert_agent_llm",
         "model_client",
         "mcp_client_example_tools"
-      ]
+      ],
+      "group": "sub-agents"
     }
   }
 }

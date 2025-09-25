@@ -19,9 +19,11 @@ from hopeit_agents.mcp_client.agent_tooling import (
     resolve_tool_prompt as bridge_resolve_tool_prompt,
 )
 from hopeit_agents.mcp_client.models import BridgeConfig, ToolExecutionResult, ToolInvocation
+from hopeit_agents.mcp_server.tools.api import event_tool_api
 from hopeit_agents.model_client.api import generate as model_generate
+from hopeit_agents.model_client.client import ModelClientError
 from hopeit_agents.model_client.conversation import build_conversation
-from hopeit_agents.model_client.models import CompletionRequest, Message, Role
+from hopeit_agents.model_client.models import CompletionConfig, CompletionRequest, Message, Role
 
 logger, extra = app_extra_logger()
 
@@ -33,11 +35,17 @@ __api__ = event_api(
     responses={200: (AgentResponse, "Aggregated agent response")},
 )
 
+__mcp__ = event_tool_api(
+    summary="example-agents: expert agent",
+    payload=(AgentRequest, "Agent task description"),
+    response=(AgentResponse, "Aggregated agent response"),
+)
+
 
 async def run_agent(payload: AgentRequest, context: EventContext) -> AgentResponse:
     """Execute the agent loop: model completion, optional tool calls."""
-    agent_settings = context.settings(key="main_agent_llm", datatype=AgentSettings)
-    mcp_settings = context.settings(key="mcp_client_agents", datatype=BridgeConfig)
+    agent_settings = context.settings(key="expert_agent_llm", datatype=AgentSettings)
+    mcp_settings = context.settings(key="mcp_client_example_tools", datatype=BridgeConfig)
     tool_prompt, tools = await bridge_resolve_tool_prompt(
         mcp_settings,
         context,
@@ -46,7 +54,7 @@ async def run_agent(payload: AgentRequest, context: EventContext) -> AgentRespon
         template=agent_settings.tool_prompt_template,
         include_schemas=agent_settings.include_tool_schemas_in_prompt,
     )
-
+    completion_config = CompletionConfig(available_tools=tools)
     conversation = build_conversation(
         payload.conversation,
         user_message=payload.user_message,
@@ -54,37 +62,60 @@ async def run_agent(payload: AgentRequest, context: EventContext) -> AgentRespon
         tool_prompt=tool_prompt,
     )
 
-    model_request = CompletionRequest(conversation=conversation)
-    completion = await model_generate.generate(model_request, context)
-    conversation = completion.conversation
+    for n_turn in range(0, 10):
+        model_request = CompletionRequest(conversation=conversation, config=completion_config)
 
-    tool_call_records: list[ToolCallRecord] = []
+        try:
+            completion = await model_generate.generate(model_request, context)
+            conversation = completion.conversation
 
-    if agent_settings.enable_tools and completion.tool_calls:
-        tool_call_records = await bridge_execute_tool_calls(
-            mcp_settings,
-            context,
-            tool_calls=[
-                ToolInvocation(
-                    tool_name=tc.function.name,
-                    payload=Payload.from_json(tc.function.arguments, datatype=dict[str, Any]),
-                    call_id=tc.id,
+            print("===========================================================")
+            print(n_turn, len(conversation.messages))
+            print("\n".join(f"{x.role}: {x.content}" for x in conversation.messages))
+            print("===========================================================")
+
+            tool_call_records: list[ToolCallRecord] = []
+
+            if agent_settings.enable_tools and completion.tool_calls:
+                tool_call_records = await bridge_execute_tool_calls(
+                    mcp_settings,
+                    context,
+                    tool_calls=[
+                        ToolInvocation(
+                            tool_name=tc.function.name,
+                            payload=Payload.from_json(
+                                tc.function.arguments, datatype=dict[str, Any]
+                            ),
+                            call_id=tc.id,
+                            session_id=payload.agent_id,  # TODO: session_id?
+                        )
+                        for tc in completion.tool_calls
+                    ],
                     session_id=payload.agent_id,  # TODO: session_id?
                 )
-                for tc in completion.tool_calls
-            ],
-            session_id=payload.agent_id,  # TODO: session_id?
-        )
 
-        for record in tool_call_records:
+                for record in tool_call_records:
+                    conversation = conversation.with_message(
+                        Message(
+                            role=Role.TOOL,
+                            content=_format_tool_result(record.response),
+                            tool_call_id=record.request.tool_call_id,
+                            name=record.request.tool_name,
+                        ),
+                    )
+            elif not completion.message.content:
+                # Keep going if last assistant message is empty
+                continue
+            else:
+                # Finish tool call loop an return response
+                break
+
+        # In case of error, usually parsing LLM response, keep looping to fix it
+        except ModelClientError as e:
             conversation = conversation.with_message(
-                Message(
-                    role=Role.TOOL,
-                    content=_format_tool_result(record.response),
-                    tool_call_id=record.request.tool_call_id,
-                    name=record.request.tool_name,
-                ),
+                Message(role=Role.SYSTEM, content=f"Error parsing response: {e}")
             )
+    # end loop
 
     response = AgentResponse(
         agent_id=payload.agent_id,
@@ -114,8 +145,6 @@ async def run_agent(payload: AgentRequest, context: EventContext) -> AgentRespon
 
 
 def _format_tool_result(result: ToolExecutionResult) -> str:
-    if result.raw_result is not None:
-        return Payload.to_json(result.raw_result, indent=2)
     if result.structured_content is not None:
         return Payload.to_json(result.structured_content, indent=2)
     return Payload.to_json(result.content, indent=2)
