@@ -37,5 +37,5 @@ def test_app_tool_name_uses_override_route() -> None:
         override_route_name="/custom/route",
     )
 
-    assert full_tool_name == "demo-app/plugin/tool-sum-two-numbers"
+    assert full_tool_name == "demo-app/tool-sum-two-numbers"
     assert tool_name == "custom/route"

@@ -44,8 +44,8 @@ __mcp__ = event_tool_api(
 
 async def run_agent(payload: AgentRequest, context: EventContext) -> AgentResponse:
     """Execute the agent loop: model completion, optional tool calls."""
-    agent_settings = context.settings(key="expert_agent_llm", datatype=AgentSettings)
-    mcp_settings = context.settings(key="mcp_client_example_tools", datatype=BridgeConfig)
+    agent_settings = context.settings(key="main_agent_llm", datatype=AgentSettings)
+    mcp_settings = context.settings(key="sub_agents_mcp_client", datatype=BridgeConfig)
     tool_prompt, tools = await bridge_resolve_tool_prompt(
         mcp_settings,
         context,

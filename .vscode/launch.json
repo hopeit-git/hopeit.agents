@@ -22,7 +22,7 @@
       "justMyCode": false
     },
     {
-      "name": "sub-agents",
+      "name": "sub-agents-mcp-server",
       "type": "debugpy",
       "request": "launch",
       "module": "hopeit_agents.mcp_server.cli.server",
@@ -37,9 +37,9 @@
         "--host",
         "127.0.0.1",
         "--port",
-        "8765",
+        "8767",
         "--config-files",
-        "plugins/mcp/mcp-server/config/dev-noauth.json,plugins/mcp/mcp-server/config/plugin-config.json,plugins/agents/model-client/config/plugin-config.json,examples/apps/example-agents/config/app-config.json",
+        "plugins/mcp/mcp-server/config/dev-noauth.json,plugins/mcp/mcp-server/config/plugin-config.json,examples/apps/example-agents/config/app-config.json",
         "--enabled-groups",
         "sub-agents"
       ],
