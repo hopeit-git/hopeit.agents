@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import uuid
 from typing import Any
 
 from hopeit.app.context import EventContext
@@ -40,10 +41,10 @@ async def resolve_tool_prompt(
     enable_tools: bool,
     template: str | None,
     include_schemas: bool,
-) -> str | None:
+) -> tuple[str | None, list[ToolDescriptor]]:
     """Return a tool-aware prompt based on the MCP tool inventory."""
     if not enable_tools or not template:
-        return None
+        return None, []
 
     env = build_environment(config, context.env)
     client = MCPClient(config=config, env=env)
@@ -55,20 +56,20 @@ async def resolve_tool_prompt(
             "agent_tool_prompt_list_failed",
             extra=extra(agent_id=agent_id, error=str(exc), details=exc.details),
         )
-        return None
+        return None, []
     except Exception as exc:  # pragma: no cover - defensive guardrail
         logger.error(
             context,
             "agent_tool_prompt_unexpected_error",
             extra=extra(agent_id=agent_id, error=repr(exc)),
         )
-        return None
+        return None, []
 
     return build_tool_prompt(
         tools,
         template=template,
         include_schemas=include_schemas,
-    )
+    ), tools
 
 
 def build_tool_prompt(
@@ -116,6 +117,7 @@ async def call_tool(
     config: BridgeConfig,
     context: EventContext,
     *,
+    call_id: str,
     tool_name: str,
     payload: dict[str, Any],
     session_id: str | None = None,
@@ -124,7 +126,7 @@ async def call_tool(
     env = build_environment(config, context.env)
     client = MCPClient(config=config, env=env)
     args = ToolInvocation(
-        call_id="call_123",
+        call_id=call_id,
         tool_name=tool_name,
         payload=payload,
         session_id=session_id,
@@ -155,6 +157,7 @@ async def execute_tool_calls(
         result = await call_tool(
             config,
             context,
+            call_id=tool_call.call_id or f"call_{uuid.uuid4().hex[-10:]}",
             tool_name=tool_call.tool_name,
             payload=tool_call.payload,
             session_id=session_id,

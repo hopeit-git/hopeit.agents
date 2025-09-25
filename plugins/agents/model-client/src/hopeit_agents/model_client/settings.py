@@ -51,6 +51,7 @@ def merge_config(
             response_format=base.response_format,
             tool_choice=base.tool_choice,
             enable_tool_expansion=base.enable_tool_expansion,
+            available_tools=base.available_tools,
         )
     else:
         target = CompletionConfig(
@@ -66,6 +67,7 @@ def merge_config(
             enable_tool_expansion=override.enable_tool_expansion
             if override.enable_tool_expansion is not None
             else base.enable_tool_expansion,
+            available_tools=override.available_tools or base.available_tools,
         )
     if target.enable_tool_expansion is None:
         target.enable_tool_expansion = True

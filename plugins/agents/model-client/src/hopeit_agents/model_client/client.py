@@ -13,10 +13,12 @@ from .models import (
     CompletionRequest,
     CompletionResponse,
     Conversation,
+    Message,
     ToolCall,
     Usage,
     message_from_openai_dict,
     message_to_openai_dict,
+    messages_from_tool_calls,
     tool_call_from_openai_dict,
 )
 
@@ -62,6 +64,12 @@ class AsyncModelClient:
 
         async with aiohttp.ClientSession(timeout=timeout) as session:
             async with session.post(url, json=payload, headers=headers) as response:
+                print()
+                print("REQUEST", request)
+                print()
+                print("RESPONSE", await response.text())
+                print()
+
                 return await self._parse_response(request.conversation, response, config)
 
     def _build_headers(self) -> Mapping[str, str]:
@@ -128,20 +136,27 @@ class AsyncModelClient:
                 details=payload,
             )
 
-        first_choice = choices[0]
-        message_data = first_choice.get("message", {})
-        message = message_from_openai_dict(message_data)
+        used_choice = {}
+        message = Message.empty()
+        updated_conversation = conversation
+        for choice in choices:
+            message_data = choice.get("message", {})
+            message = message_from_openai_dict(message_data)
+            used_choice = choice
+            if message.content:
+                updated_conversation = updated_conversation.with_message(message)
+                break
 
         tool_calls_raw = message_data.get("tool_calls") or []
         tool_calls: list[ToolCall] = []
-        if isinstance(tool_calls_raw, list):
+        if isinstance(tool_calls_raw, list) and len(tool_calls_raw):
             tool_calls = [
-                tool_call_from_openai_dict(item)
+                tool_call_from_openai_dict(item, config.available_tools)
                 for item in tool_calls_raw
                 if isinstance(item, dict)
             ]
-
-        updated_conversation = conversation.with_message(message)
+            for tool_call_msg in messages_from_tool_calls(tool_calls):
+                updated_conversation = updated_conversation.with_message(tool_call_msg)
 
         usage_data = payload.get("usage")
         usage = None
@@ -167,5 +182,5 @@ class AsyncModelClient:
             tool_calls=tool_calls,
             conversation=updated_conversation,
             usage=usage,
-            finish_reason=first_choice.get("finish_reason"),
+            finish_reason=used_choice.get("finish_reason"),
         )

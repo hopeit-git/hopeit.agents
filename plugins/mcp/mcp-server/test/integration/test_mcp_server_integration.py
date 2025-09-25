@@ -105,11 +105,11 @@ async def test_mcp_server_serves_example_tools(mcp_http_endpoint: tuple[str, int
 
     tools = await client.list_tools()
     names = {tool.name for tool in tools}
-    assert "hopeit-agents-example-tool/tool-sum-two-numbers" in names
-    assert "hopeit-agents-example-tool/tool-generate-random" in names
+    assert "tool-sum-two-numbers" in names
+    assert "tool-generate-random" in names
 
     sum_result = await client.call_tool(
-        tool_name="hopeit-agents-example-tool/tool-sum-two-numbers",
+        tool_name="tool-sum-two-numbers",
         payload={"a": 1, "b": 2},
         call_id="sum-integration",
     )
@@ -117,7 +117,7 @@ async def test_mcp_server_serves_example_tools(mcp_http_endpoint: tuple[str, int
     assert sum_result.structured_content == {"result": 3}
 
     random_result = await client.call_tool(
-        tool_name="hopeit-agents-example-tool/tool-generate-random",
+        tool_name="tool-generate-random",
         payload={"range": {"min": 123, "max": 123}},
         call_id="random-integration",
     )
@@ -145,12 +145,12 @@ async def test_mcp_server_returns_method_not_found_for_unknown_tool(
             await session.initialize()
 
             result = await session.call_tool(
-                "hopeit-agents-example-tool/tool-does-not-exist",
+                "tool-does-not-exist",
                 {},
             )
 
             assert result.isError is True
             assert any(
-                isinstance(block, types.TextContent) and "not registered" in block.text
+                isinstance(block, types.TextContent) and "Invalid tool name" in block.text
                 for block in result.content
             )

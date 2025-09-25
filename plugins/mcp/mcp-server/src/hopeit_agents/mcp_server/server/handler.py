@@ -55,13 +55,13 @@ def register_tool(
     datatype = find_datatype_handler(
         app_config=app_engine.app_config, event_name=event_name, event_info=event_info
     )
-    tool_name = api.app_tool_name(
+    full_tool_name, tool_name = api.app_tool_name(
         app_engine.app_config.app,
         event_name=event_name,
         plugin=None if plugin is None else plugin.app_config.app,
         override_route_name=event_info.route,
     )
-    logger.info(__name__, f"Tool: {tool_name} input={str(datatype)}")
+    logger.info(__name__, f"Registering tool: {full_tool_name} input={str(datatype)}")
     impl = plugin if plugin else app_engine
     handler = partial(
         _handle_tool_invocation,
@@ -73,6 +73,8 @@ def register_tool(
     )
     # handler.__closure__ = None
     # handler.__code__ = _handle_tool_invocation.__code__
+    if tool_name in _server.handlers:
+        raise RuntimeError(f"Tool name {tool_name} duplicated at runtime.")
     _server.tools.append(tool)
     _server.handlers[tool_name] = handler
 
@@ -89,7 +91,7 @@ async def invoke_tool(
 ) -> dict[str, Any]:
     handler = _server.handlers.get(tool_name)
     if handler is None:
-        raise ValueError(f"Tool {tool_name} not registered.")
+        raise ValueError(f"Invalid tool name: '{tool_name}'.")
     return await handler(payload_raw, headers)
 
 
