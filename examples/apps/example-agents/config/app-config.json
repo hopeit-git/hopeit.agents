@@ -11,6 +11,8 @@
       "api_base": "${AGENT_MODEL_API_BASE}",
       "api_key_env": "OPENAI_API_KEY",
       "default_model": "${AGENT_MODEL_NAME}",
+      "deployment_name": "${AGENT_DEPLOYMENT_NAME}",
+      "api_version": "${AGENT_API_VERSION}",
       "timeout_seconds": 120.0,
       "extra_headers": {
         "OpenAI-Beta": "assistants=v1"

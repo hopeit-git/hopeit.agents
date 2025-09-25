@@ -14,7 +14,9 @@
       "cwd": "${workspaceFolder}",
       "env": {
         "AGENT_MODEL_API_BASE": "http://localhost:11434/v1",
-        "AGENT_MODEL_NAME": "gpt-oss:20b"
+        "AGENT_MODEL_NAME": "gpt-oss:20b",
+        "AGENT_DEPLOYMENT_NAME": "",
+        "AGENT_API_VERSION": "",
       },
       "console": "integratedTerminal",
       "justMyCode": false

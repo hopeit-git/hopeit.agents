@@ -1,5 +1,7 @@
 """Sum two numbers tool event."""
 
+from typing import Any
+
 from hopeit.app.api import event_api
 from hopeit.app.context import EventContext
 from hopeit.app.logger import app_extra_logger
@@ -64,9 +66,9 @@ async def run_agent(payload: AgentRequest, context: EventContext) -> AgentRespon
             context,
             tool_calls=[
                 ToolInvocation(
-                    tool_name=tc.tool_name,
-                    payload=tc.payload,
-                    call_id=tc.call_id,
+                    tool_name=tc.function.name,
+                    payload=Payload.from_json(tc.function.arguments, datatype=dict[str, Any]),
+                    call_id=tc.id,
                     session_id=payload.agent_id,  # TODO: session_id?
                 )
                 for tc in completion.tool_calls
@@ -80,6 +82,7 @@ async def run_agent(payload: AgentRequest, context: EventContext) -> AgentRespon
                     role=Role.TOOL,
                     content=_format_tool_result(record.response),
                     tool_call_id=record.request.tool_call_id,
+                    name=record.request.tool_name,
                 ),
             )
 

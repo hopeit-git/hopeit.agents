@@ -4,6 +4,7 @@ from enum import Enum
 from typing import Any
 
 from hopeit.dataobjects import dataclass, dataobject, field
+from hopeit.dataobjects.payload import Payload
 
 
 class Transport(str, Enum):
@@ -94,6 +95,32 @@ class ToolDescriptor:
     See [MCP specification](https://github.com/modelcontextprotocol/modelcontextprotocol/blob/47339c03c143bb4ec01a26e721a1b8fe66634ebe/docs/specification/draft/basic/index.mdx#general-fields)
     for notes on _meta usage.
     """
+
+    def to_openai_dict(self) -> dict[str, Any]:
+        """
+        Convert this ToolDescriptor to an OpenAI tool definition dictionary.
+        """
+        tool_def: dict[str, Any] = {
+            "type": "function",
+            "function": {
+                "name": self.name,
+                "description": self.description or "",
+                "parameters": self.input_schema,
+            },
+        }
+        if self.title:
+            tool_def["function"]["title"] = self.title
+        if self.annotations is not None:
+            tool_def["function"]["annotations"] = Payload.to_obj(self.annotations)
+        if self.meta is not None:
+            tool_def["function"]["_meta"] = self.meta
+
+        if self.output_schema is not None:
+            tool_def["function"]["response"] = {
+                "type": "json_schema",
+                "json_schema": self.output_schema,
+            }
+        return tool_def
 
 
 @dataobject

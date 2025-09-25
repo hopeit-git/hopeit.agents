@@ -25,6 +25,7 @@ logger, extra = app_extra_logger()
 async def generate(payload: CompletionRequest, context: EventContext) -> CompletionResponse:
     """Call the provider using defaults from settings and request overrides."""
     settings = context.settings(key="model_client", datatype=ModelClientSettings)
+
     config = merge_config(settings, payload.config)
     api_key = settings.resolve_api_key(context.env)
 
@@ -33,6 +34,8 @@ async def generate(payload: CompletionRequest, context: EventContext) -> Complet
         api_key=api_key,
         timeout_seconds=settings.timeout_seconds,
         default_headers=settings.extra_headers,
+        deployment_name=settings.deployment_name,
+        api_version=settings.api_version,
     )
 
     try:

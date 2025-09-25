@@ -7,6 +7,7 @@ from enum import Enum
 from typing import Any
 
 from hopeit.dataobjects import dataclass, dataobject, field
+from hopeit.dataobjects.payload import Payload
 from hopeit.server.names import spinalcase
 
 from hopeit_agents.mcp_client.models import ToolDescriptor
@@ -32,12 +33,19 @@ class ToolSpec:
 
 @dataobject
 @dataclass
+class ToolFunctionCall:
+    name: str
+    arguments: str
+
+
+@dataobject
+@dataclass
 class ToolCall:
     """Represents a tool call issued by the assistant."""
 
-    call_id: str
-    tool_name: str
-    payload: dict[str, Any]
+    id: str
+    type: str
+    function: ToolFunctionCall
 
 
 @dataobject
@@ -57,8 +65,10 @@ class Message:
     """Single message within a conversation."""
 
     role: Role
-    content: str
+    content: str | None
     tool_call_id: str | None = None
+    name: str | None = None
+    tool_calls: list[ToolCall] | None = None
     metadata: dict[str, Any] = field(default_factory=dict)
 
     @classmethod
@@ -136,25 +146,17 @@ class CompletionResponse:
 
 def message_to_openai_dict(message: Message) -> dict[str, Any]:
     """Convert a Message into the OpenAI-compatible dict structure."""
-    result: dict[str, Any] = {
-        "role": message.role.value,
-        "content": message.content,
-    }
-    if message.tool_call_id is not None:
-        result["tool_call_id"] = message.tool_call_id
-    if message.metadata:
-        result["metadata"] = message.metadata
-    return result
+    return Payload.to_obj(message, exclude_none=True)  # type: ignore[return-value]
 
 
 def messages_from_tool_calls(tool_calls: list[ToolCall]) -> list[Message]:
     return [
         Message(
             role=Role.ASSISTANT,
-            content=f"Calling tool_name={t.tool_name} payload={t.payload}",
-            tool_call_id=t.call_id,
+            content="",
+            tool_calls=tool_calls,
         )
-        for t in tool_calls
+        # for t in tool_calls
     ]
 
 
@@ -180,9 +182,12 @@ def tool_call_from_openai_dict(
     tool_name, arguments = _resolve_arguments(tool_name, parsed_args, available_tools or [])
 
     return ToolCall(
-        call_id=f"call_{uuid.uuid4().hex[-10:]}",
-        tool_name=tool_name,
-        payload=arguments,
+        id=f"call_{uuid.uuid4().hex[-10:]}",
+        type="function",
+        function=ToolFunctionCall(
+            name=tool_name,
+            arguments=Payload.to_json(arguments),
+        ),
     )
 
 

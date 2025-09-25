@@ -42,6 +42,8 @@ class AsyncModelClient:
         self,
         *,
         base_url: str,
+        api_version: str | None,
+        deployment_name: str | None,
         api_key: str | None,
         timeout_seconds: float,
         default_headers: Mapping[str, str] | None = None,
@@ -50,6 +52,16 @@ class AsyncModelClient:
         self._api_key = api_key
         self._timeout_seconds = timeout_seconds
         self._default_headers = dict(default_headers or {})
+        self._api_version = api_version
+        self._deployment_name = deployment_name
+
+    def _build_url(self) -> str:
+        url = f"{self._base_url.strip('/')}/chat/completions"
+        if self._deployment_name:
+            url = url.replace("{DEPLOYMENT_NAME}", self._deployment_name)
+        if self._api_version:
+            url = url + f"?api-version={self._api_version}"
+        return url
 
     async def complete(
         self,
@@ -59,8 +71,11 @@ class AsyncModelClient:
         """Execute a completion call and normalize the response."""
         payload = self._build_payload(request.conversation, config)
         headers = self._build_headers()
-        url = f"{self._base_url}/chat/completions"
+        url = self._build_url()
         timeout = aiohttp.ClientTimeout(total=self._timeout_seconds)
+        print()
+        print("URL", url)
+        print()
 
         async with aiohttp.ClientSession(timeout=timeout) as session:
             async with session.post(url, json=payload, headers=headers) as response:
@@ -75,6 +90,7 @@ class AsyncModelClient:
     def _build_headers(self) -> Mapping[str, str]:
         headers = {"Content-Type": "application/json"}
         if self._api_key:
+            headers["api-key"] = self._api_key
             headers["Authorization"] = f"Bearer {self._api_key}"
         headers.update(self._default_headers)
         return headers
@@ -88,18 +104,30 @@ class AsyncModelClient:
             "model": config.model,
             "messages": [message_to_openai_dict(msg) for msg in conversation.messages],
         }
+
+        # Standard optional params
         if config.temperature is not None:
             body["temperature"] = config.temperature
         if config.max_output_tokens is not None:
             body["max_tokens"] = config.max_output_tokens
         if config.response_format is not None:
             body["response_format"] = config.response_format
-        if config.tool_choice is not None:
-            body["tool_choice"] = config.tool_choice
-        parallel_tool_calls = (
-            True if config.enable_tool_expansion is None else config.enable_tool_expansion
-        )
-        body["parallel_tool_calls"] = parallel_tool_calls
+
+        # Tools payload (OpenAI requires tools to be present)
+        tools_spec: list[dict[str, Any]] = []
+        for tool in config.available_tools or []:
+            tools_spec.append(tool.to_openai_dict())
+
+        if tools_spec:
+            body["tools"] = tools_spec
+            # Only include tool_choice when tools are present
+            if config.tool_choice is not None:
+                body["tool_choice"] = config.tool_choice
+            # Only include parallel_tool_calls when tools are present AND explicitly configured
+            # (OpenAI rejects this param if tools are missing and may reject it for some models)
+            if config.enable_tool_expansion is not None:
+                body["parallel_tool_calls"] = bool(config.enable_tool_expansion)
+
         return body
 
     async def _parse_response(

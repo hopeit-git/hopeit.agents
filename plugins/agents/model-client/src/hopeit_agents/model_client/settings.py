@@ -1,5 +1,6 @@
 """Settings helpers for the model client plugin."""
 
+import os
 from collections.abc import Mapping
 from typing import Any
 
@@ -16,8 +17,10 @@ class ModelClientSettings:
     """Configuration loaded from hopeit.app context settings."""
 
     api_base: str
+    default_model: str
     api_key_env: str | None = None
-    default_model: str = "gpt-4o-mini"
+    deployment_name: str | None = None
+    api_version: str | None = None
     timeout_seconds: float = 30.0
     extra_headers: dict[str, str] = field(default_factory=dict)
     default_config: CompletionConfig = field(
@@ -31,10 +34,7 @@ class ModelClientSettings:
         api_key = env.get(self.api_key_env)
         if isinstance(api_key, str) and api_key:
             return api_key
-        if isinstance(api_key, Mapping):
-            value = api_key.get("value")
-            return str(value) if value is not None else None
-        return None
+        return os.getenv(self.api_key_env)
 
 
 def merge_config(
