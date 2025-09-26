@@ -4,7 +4,13 @@ from collections.abc import Callable, Generator
 from functools import partial
 from typing import Any, NamedTuple, get_origin
 
-from hopeit.app.config import AppConfig, AppDescriptor, EventDescriptor, EventPlugMode, EventType
+from hopeit.app.config import (
+    AppConfig,
+    AppDescriptor,
+    EventDescriptor,
+    EventPlugMode,
+    EventType,
+)
 from hopeit.server.imports import find_event_handler
 from hopeit.server.logger import engine_logger
 from hopeit.server.names import spinalcase
@@ -164,9 +170,15 @@ def extract_app_tool_specs(
                 outputSchema=event_spec["responses"]["200"]["content"]["application/json"][
                     "schema"
                 ],
-                annotations=types.ToolAnnotations(title=full_tool_name, readOnlyHint=True),
+                annotations=types.ToolAnnotations(
+                    title=_split_name(full_tool_name), readOnlyHint=True
+                ),
             ),
         )
+
+
+def _split_name(string: str) -> str:
+    return string.split("/")[-1] + " (" + "/".join(string.split("/")[0:-1]) + ")"
 
 
 def _extract_event_tool_spec(
@@ -201,11 +213,13 @@ def app_tool_name(
     ]
     return (
         "/".join(spinalcase(x) for x in components),
-        spinalcase(components[-1])
-        if override_route_name is None
-        else (
-            spinalcase(override_route_name[1:])
-            if override_route_name[0] == "/"
-            else spinalcase(override_route_name)
+        (
+            spinalcase(components[-1])
+            if override_route_name is None
+            else (
+                spinalcase(override_route_name[1:])
+                if override_route_name[0] == "/"
+                else spinalcase(override_route_name)
+            )
         ),
     )
