@@ -14,6 +14,7 @@ from hopeit.server.config import ServerConfig, parse_server_config_json
 from hopeit.server.logger import EngineLoggerWrapper, engine_logger, extra_logger
 from mcp import types
 from mcp.server.lowlevel.server import Server
+from mcp.server.stdio import stdio_server
 from mcp.server.streamable_http_manager import StreamableHTTPSessionManager
 from starlette.applications import Starlette
 from starlette.requests import Request
@@ -48,9 +49,30 @@ def run_app(
     workers: int,
     worker_class: str,
     worker_timeout: int,
+    transport: str = "http",
 ) -> None:
-    """Start the MCP HTTP server using the provided runtime configuration."""
+    """Start the MCP server using the provided runtime configuration."""
     init_logger()
+    transport_name = transport.lower()
+
+    if transport_name == "stdio":
+        logger.info(__name__, "Starting MCP Server (transport=stdio).")
+        try:
+            asyncio.run(
+                _serve_stdio(
+                    config_files=config_files,
+                    enabled_groups=enabled_groups,
+                    start_streams=start_streams,
+                )
+            )
+        except KeyboardInterrupt:  # pragma: no cover - manual interrupt
+            logger.info(__name__, "Received interruption, shutting down...")
+        logger.info(__name__, "Stopped MCP Server.")
+        return
+
+    if transport_name != "http":
+        raise ValueError(f"Unsupported MCP transport: {transport}")
+
     endpoint = f"http://{host}:{port}{HTTP_ENDPOINT}"
     logger.info(__name__, f"Starting MCP Server (transport=http, endpoint={endpoint}).")
     try:
@@ -140,6 +162,34 @@ def run_http(
         config_files=config_files, enabled_groups=enabled_groups, start_streams=start_streams
     )
     uvicorn.run(app, host=host, port=port, log_level="debug")
+
+
+async def _serve_stdio(
+    *,
+    config_files: list[str],
+    enabled_groups: list[str],
+    start_streams: bool,
+) -> None:
+    """Serve the MCP server over stdio transport."""
+    server_started = False
+    try:
+        logger.info(__name__, "Starting hopeit.engine...")
+        await prepare_engine(
+            config_files=config_files,
+            enabled_groups=enabled_groups,
+            start_streams=start_streams,
+        )
+        server_started = True
+        logger.info(__name__, "Started hopeit.engine.")
+
+        async with stdio_server() as (read_stream, write_stream):
+            logger.info(__name__, "MCP stdio transport ready.")
+            init_options = mcp_server.create_initialization_options()
+            await mcp_server.run(read_stream, write_stream, init_options)
+            logger.info(__name__, "MCP stdio transport stopped.")
+    finally:
+        if server_started:
+            await stop_server()
 
 
 async def prepare_engine(
