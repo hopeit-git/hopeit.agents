@@ -30,6 +30,13 @@ def server() -> None:
 @click.option("--port", default=8020, help="TCP/IP port to listen.")
 # @click.option("--path", help="POSIX complaint socket name.")
 @click.option(
+    "--transport",
+    type=click.Choice(["http", "stdio"]),
+    default="http",
+    show_default=True,
+    help="Transport used to expose the MCP server.",
+)
+@click.option(
     "--start-streams",
     is_flag=True,
     default=False,
@@ -67,6 +74,7 @@ def run(
     # api_file: str,
     host: str,
     port: int,
+    transport: str,
     # path: str,
     start_streams: bool,
     enabled_groups: str,
@@ -85,6 +93,7 @@ def run(
     run_app(
         host=host,
         port=port,
+        transport=transport,
         # path=path,
         config_files=files,
         # api_file=api_file,

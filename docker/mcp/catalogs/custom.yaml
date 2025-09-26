@@ -1,0 +1,19 @@
+version: 2
+name: hopeit-agents
+displayName: Hopeit Agents
+registry:
+  hopeit-agents-mcp:
+    title: Hopeit Agents MCP Server
+    type: server
+    image: hopeit-agents-mcp-server:latest
+    source: https://github.com/hopeit-git/hopeit.agents
+    tools:
+      - name: tool.generate_random
+        displayName: Random Number Generator
+      - name: tool.sum_two_numbers
+        displayName: Sum Calculator
+    env:
+      - name: MCP_SERVER_PORT
+        value: "8765"
+    ports:
+      - containerPort: 8765

@@ -1,0 +1,22 @@
+{
+  "streams": {
+    "stream_manager": "hopeit.redis_streams.RedisStreamManager",
+    "connection_str": "redis://localhost:6379"
+  },
+  "logging": {
+    "log_level": "DEBUG",
+    "console_only": true
+  },
+  "auth": {
+    "auth_passphrase": "",
+    "secrets_location": "/tmp",
+    "enabled": false,
+    "create_keys": false,
+    "default_auth_methods": [
+      "Unsecured"
+    ]
+  },
+  "api": {
+    "docs_path": "/api/docs"
+  }
+}
