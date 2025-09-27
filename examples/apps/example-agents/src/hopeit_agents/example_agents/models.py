@@ -33,3 +33,38 @@ class AgentResponse:
     conversation: Conversation
     assistant_message: Message
     tool_calls: list[ToolCallRecord] = field(default_factory=list)
+
+
+@dataobject
+@dataclass
+class ExpertAgentRequest:
+    """Incoming agent instruction."""
+
+    agent_id: str
+    user_message: str
+    metadata: dict[str, Any] = field(default_factory=dict)
+
+
+@dataobject
+@dataclass
+class ExpressionValue:
+    expr: str
+    value: int
+
+
+@dataobject
+@dataclass
+class ExpertAgentResults:
+    expr_values: list[ExpressionValue]
+
+
+@dataobject
+@dataclass
+class ExpertAgentResponse:
+    """Agent execution output."""
+
+    agent_id: str
+    results: ExpertAgentResults | None
+    error: str | None = None
+    assistant_message: Message | None = None
+    tool_calls: list[ToolCallRecord] = field(default_factory=list)

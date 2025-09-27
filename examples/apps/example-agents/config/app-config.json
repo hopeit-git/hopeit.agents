@@ -18,6 +18,15 @@
         "OpenAI-Beta": "assistants=v1"
       }
     },
+    "sub_agents_mcp_client": {
+      "transport": "http",
+      "url": "http://127.0.0.1:8767/mcp",
+      "host": "127.0.0.1",
+      "port": 8767,
+      "tool_cache_seconds": 10.0,
+      "list_timeout_seconds": 5.0,
+      "call_timeout_seconds": 600.0
+    },
     "mcp_client_example_tools": {
       "transport": "http",
       "url": "http://127.0.0.1:8765/mcp",
@@ -28,16 +37,19 @@
       "call_timeout_seconds": 60.0
     },
     "main_agent_llm": {
-      "system_prompt": "You are a helpful agent that can call tools via MCP.",
+      "system_prompt": "You are a helpful agent that can solve simple math expression by using an expert-agent tool. You need to take the user input, converted into an expression using letters and numbers for example  (x - 200) + (y + 300) and submit the expression to the expert_agent tool. DON'T use or provide answers with numbers that are not coming from the tools. Show the result of the tool to the user, plus a summary of a list of tool calls returned form the expert.",
       "enable_tools": true,
       "tool_prompt_template": "You can call ONLY the following tools when needed. Return tool calls with JSON that follow the schema.\n{tool_descriptions}",
       "include_tool_schemas_in_prompt": true
     },
     "expert_agent_llm": {
-      "system_prompt": "You are a helpful agent that can generate random integer numbers and make operations using the availanle tools via MCP. After calling the needed tools return the answer as text. DON'T use or provide answers with numbers that are not coming from the tools",
+      "system_prompt": "You are an agent that generate numeric examples from an expression containing sum only. Do not resolve other operatins than sum. Always replace unkown values with a generated random number and solve the sums using the available tools via MCP. Return the result using this schema: {expert-agent-results-schema} where each item contains the variable names or expressions calculated with its resultant value.",
       "enable_tools": true,
       "tool_prompt_template": "You can call ONLY the following tools when needed. Return tool calls with JSON that follow the schema.\n{tool_descriptions}",
       "include_tool_schemas_in_prompt": true
+    },
+    "agents.main_agent": {
+      "response_timeout": 600
     },
     "agents.expert_agent": {
       "response_timeout": 600
@@ -45,7 +57,12 @@
   },
   "events": {
     "agents.main_agent": {
-      "type": "POST"
+      "type": "POST",
+      "setting_keys": [
+        "main_agent_llm",
+        "model_client",
+        "sub_agents_mcp_client"
+      ]
     },
     "agents.expert_agent": {
       "type": "POST",

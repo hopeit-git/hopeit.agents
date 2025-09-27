@@ -168,7 +168,7 @@ async def prepare_engine(
 
     # Register MCP tools
     logger.info(__name__, "Registering tools...")
-    register_tool_handlers(apps_config)
+    register_tool_handlers(apps_config, enabled_groups=enabled_groups)
 
     # web_server.on_shutdown.append(_shutdown_hook)
     logger.debug(__name__, "Performing forced garbage collection...")
@@ -182,12 +182,12 @@ def init_logger() -> None:
     handler.init_logger()
 
 
-def register_tool_handlers(apps_config: list[AppConfig]) -> None:
+def register_tool_handlers(apps_config: list[AppConfig], *, enabled_groups: list[str]) -> None:
     """Register tool handlers for app and plugin events exposed through MCP."""
     apps_config_by_key = {config.app.app_key(): config for config in apps_config}
     for app_config in apps_config:
         app_engine = runtime.server.app_engine(app_key=app_config.app_key())
-        for info in tools_api.extract_app_tool_specs(app_config):
+        for info in tools_api.extract_app_tool_specs(app_config, enabled_groups=enabled_groups):
             handler.register_tool(
                 info.tool,
                 app_engine,
@@ -198,7 +198,9 @@ def register_tool_handlers(apps_config: list[AppConfig]) -> None:
         for plugin in app_config.plugins:
             plugin_config = apps_config_by_key[plugin.app_key()]
             plugin_engine = runtime.server.app_engine(app_key=plugin_config.app_key())
-            for info in tools_api.extract_app_tool_specs(app_config, plugin_config):
+            for info in tools_api.extract_app_tool_specs(
+                app_config, plugin=plugin_config, enabled_groups=enabled_groups
+            ):
                 handler.register_tool(
                     info.tool,
                     app_engine,

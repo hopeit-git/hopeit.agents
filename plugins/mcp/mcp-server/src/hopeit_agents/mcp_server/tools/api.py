@@ -131,7 +131,10 @@ class ToolEventInfo(NamedTuple):
 
 
 def extract_app_tool_specs(
-    app_config: AppConfig, plugin: AppConfig | None = None
+    app_config: AppConfig,
+    *,
+    plugin: AppConfig | None = None,
+    enabled_groups: list[str] | None = None,
 ) -> Generator[ToolEventInfo]:
     """Yield MCP tool specifications for standalone or plugin events in an app config."""
     events = (
@@ -141,32 +144,33 @@ def extract_app_tool_specs(
     )
     plugin_app = None if plugin is None else plugin.app
     for event_name, event_info in events.items():
-        full_tool_name, tool_name = app_tool_name(
-            app_config.app,
-            event_name=event_name,
-            plugin=plugin_app,
-            override_route_name=event_info.route,
-        )
-        method = METHOD_MAPPING.get(event_info.type)
-        if method is None:
-            continue
-        event_spec = _extract_event_tool_spec(
-            app_config if plugin is None else plugin, event_name, event_info
-        )
-        yield ToolEventInfo(
-            event_name=event_name,
-            event_info=event_info,
-            tool=types.Tool(
-                name=tool_name,
-                title=event_spec["responses"]["200"].get("summary"),
-                description=event_spec["responses"]["200"]["description"],
-                inputSchema=event_spec["requestBody"]["content"]["application/json"]["schema"],
-                outputSchema=event_spec["responses"]["200"]["content"]["application/json"][
-                    "schema"
-                ],
-                annotations=types.ToolAnnotations(title=full_tool_name, readOnlyHint=True),
-            ),
-        )
+        if not enabled_groups or (event_info.group in enabled_groups or []):
+            full_tool_name, tool_name = app_tool_name(
+                app_config.app,
+                event_name=event_name,
+                plugin=plugin_app,
+                override_route_name=event_info.route,
+            )
+            method = METHOD_MAPPING.get(event_info.type)
+            if method is None:
+                continue
+            event_spec = _extract_event_tool_spec(
+                app_config if plugin is None else plugin, event_name, event_info
+            )
+            yield ToolEventInfo(
+                event_name=event_name,
+                event_info=event_info,
+                tool=types.Tool(
+                    name=tool_name,
+                    title=event_spec["responses"]["200"].get("summary"),
+                    description=event_spec["responses"]["200"]["description"],
+                    inputSchema=event_spec["requestBody"]["content"]["application/json"]["schema"],
+                    outputSchema=event_spec["responses"]["200"]["content"]["application/json"][
+                        "schema"
+                    ],
+                    annotations=types.ToolAnnotations(title=full_tool_name, readOnlyHint=True),
+                ),
+            )
 
 
 def _extract_event_tool_spec(
