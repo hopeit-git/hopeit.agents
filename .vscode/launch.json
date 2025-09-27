@@ -74,13 +74,9 @@
       "request": "launch",
       "module": "hopeit_agents.mcp_server.cli.server",
       "args": [
-        "run",
-        "--host",
-        "127.0.0.1",
+        "run",        
         "--transport",
-        "stdio",
-        "--port",
-        "8765",
+        "stdio",        
         "--config-files",
         "plugins/mcp/mcp-server/config/dev-noauth.json,plugins/mcp/mcp-server/config/plugin-config.json,examples/plugins/example-tool/config/plugin-config.json"
       ],

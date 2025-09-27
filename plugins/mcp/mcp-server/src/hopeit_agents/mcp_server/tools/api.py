@@ -182,13 +182,13 @@ def extract_app_tool_specs(
                         "schema"
                     ],
                     annotations=types.ToolAnnotations(
-                        title=_split_name(full_tool_name), readOnlyHint=True
+                        title=_format_title(full_tool_name), readOnlyHint=True
                     ),
                 ),
             )
 
 
-def _split_name(string: str) -> str:
+def _format_title(string: str) -> str:
     return string.split("/")[-1] + " (" + "/".join(string.split("/")[0:-1]) + ")"
 
 

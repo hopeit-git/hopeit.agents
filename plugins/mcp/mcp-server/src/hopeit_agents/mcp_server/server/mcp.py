@@ -68,24 +68,24 @@ def run_app(
         except KeyboardInterrupt:  # pragma: no cover - manual interrupt
             logger.info(__name__, "Received interruption, shutting down...")
         logger.info(__name__, "Stopped MCP Server.")
-        return
-
-    if transport_name != "http":
+    
+    elif transport_name == "http":
+        endpoint = f"http://{host}:{port}{HTTP_ENDPOINT}"
+        logger.info(__name__, f"Starting MCP Server (transport=http, endpoint={endpoint}).")
+        try:
+            run_http(
+                host,
+                port,
+                config_files=config_files,
+                enabled_groups=enabled_groups,
+                start_streams=start_streams,
+            )
+        except KeyboardInterrupt:  # pragma: no cover - manual interrupt
+            logger.info(__name__, "Received interruption, shutting down...")
+        logger.info(__name__, "Stopped MCP Server.")
+        
+    else:
         raise ValueError(f"Unsupported MCP transport: {transport}")
-
-    endpoint = f"http://{host}:{port}{HTTP_ENDPOINT}"
-    logger.info(__name__, f"Starting MCP Server (transport=http, endpoint={endpoint}).")
-    try:
-        run_http(
-            host,
-            port,
-            config_files=config_files,
-            enabled_groups=enabled_groups,
-            start_streams=start_streams,
-        )
-    except KeyboardInterrupt:  # pragma: no cover - manual interrupt
-        logger.info(__name__, "Received interruption, shutting down...")
-    logger.info(__name__, "Stopped MCP Server.")
 
 
 @mcp_server.list_tools()
