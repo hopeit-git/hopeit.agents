@@ -19,7 +19,6 @@ from hopeit_agents.mcp_client.agent_tooling import (
     resolve_tool_prompt as bridge_resolve_tool_prompt,
 )
 from hopeit_agents.mcp_client.models import BridgeConfig, ToolExecutionResult, ToolInvocation
-from hopeit_agents.mcp_server.tools.api import event_tool_api
 from hopeit_agents.model_client.api import generate as model_generate
 from hopeit_agents.model_client.client import ModelClientError
 from hopeit_agents.model_client.conversation import build_conversation
@@ -35,11 +34,11 @@ __api__ = event_api(
     responses={200: (AgentResponse, "Aggregated agent response")},
 )
 
-__mcp__ = event_tool_api(
-    summary="example-agents: expert agent",
-    payload=(AgentRequest, "Agent task description"),
-    response=(AgentResponse, "Aggregated agent response"),
-)
+# __mcp__ = event_tool_api(
+#     summary="example-agents: expert agent",
+#     payload=(AgentRequest, "Agent task description"),
+#     response=(AgentResponse, "Aggregated agent response"),
+# )
 
 
 async def run_agent(payload: AgentRequest, context: EventContext) -> AgentResponse:

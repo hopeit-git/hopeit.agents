@@ -150,14 +150,14 @@ async def run_agent(payload: ExpertAgentRequest, context: EventContext) -> Exper
         "agent_run_completed",
         extra=extra(
             agent_id=payload.agent_id,
-            tool_call_count=len(tool_call_records),
+            tool_call_count=len(tool_call_log),
             tool_calls=[
                 {
                     "tool_call_id": record.request.tool_call_id,
                     "tool_name": record.request.tool_name,
                     "status": record.response.status.value,
                 }
-                for record in tool_call_records
+                for record in tool_call_log
             ],
             finish_reason=completion.finish_reason,
         ),

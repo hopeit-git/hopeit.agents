@@ -1,5 +1,7 @@
 # hopeit.agents
-hopeit.engine async GenAI multi-agent framework
+
+### Agentic framework with MCP and async agent-to-agent communication support
+
 
 ## Overview
 
@@ -154,16 +156,34 @@ Make a sample call to the main agent:
 curl -X POST "http://localhost:8020/api/hopeit-agents-example-agents/0x1/agents/main-agent" \
  -H 'accept: application/json'\
  -H 'content-type: application/json' \
- -d '{"agent_id":"agent_123","user_message":"Solve the expression x + y where x and y are random numbers between 1 and 10","conversation":{"messages":[],"agent_id":"agent_123","session_id":"session_123","created_at":"2025-01-01T00:00:00.000Z"},"metadata":{}}' 
+ -d '{"agent_id":"agent_123","user_message":"Solve the expression x + y where x and y are random numbers between 0 and 100","conversation":{"messages":[],"agent_id":"agent_123","session_id":"session_123","created_at":"2025-01-01T00:00:00.000Z"},"metadata":{}}' 
 ```
 
-Response should be something like this which means:
+Answer should be something like this:
+
+```markdown
+  **Result of the expression `x + y`**
+  
+  The expert‑agent evaluated the expression using random values:
+  
+  | Tool called            | Input                         | Output |
+  |------------------------|-------------------------------|--------|
+  | `tool-generate-random` | `{range: {min: 0, max: 100}}` |  `89`  |
+  | `tool-generate-random` | `{range: {min: 0, max: 100}}` |  `82`  |
+  | `tool-sum-two-numbers` | `{a: 89, b: 82}`              | `171`  |
+  
+  So, the computed value of **x + y** is **171**.
+```
+
+Which means:
 
 1. The main agent took the user request and decided to call the expert-agent with the expression "x + y"
 2. The expert-agent used the tools to generate 2 random numbers for x and y and perform the sum
 3. The expert-agent returned the result and a list of tool calls used
 4. The main agent summarized the result for the user
 
+
+Full response:
 ```json
 {
   "agent_id": "agent_123",
@@ -179,7 +199,7 @@ Response should be something like this which means:
       },
       {
         "role": "user",
-        "content": "Solve the expression x + y where x and y are random numbers between 1 and 10",
+        "content": "Solve the expression x + y where x and y are random numbers between 0 and 100",
         "tool_call_id": null,
         "name": null,
         "tool_calls": null,
