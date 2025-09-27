@@ -41,6 +41,9 @@ flowchart LR
         a4e1 --> tool3
     end
 
+    classDef small font-size:10px;
+    class ingress,agent1,agent3,agent4,tool1,tool2,tool3,e1,e2,e3,a3e1,a4e1,t1e1,t2e1,t3e1,HopeitApp small;
+
     e2 --> ingress
 ```
 
@@ -85,6 +88,9 @@ flowchart LR
     end
 
     tools -->|Result| expert
+
+    classDef small font-size:10px;
+    class user,mainAgent,HopeitApp,SubAgentsServer,ToolsServer,subServerEntry,expert,tools,randomTool,sumTool small;
 ```
 
 ## Running the MCP Example Stack
