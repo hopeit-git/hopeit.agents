@@ -1,4 +1,4 @@
-"""Integration test that exercises the MCP server over HTTP with example tools."""
+"""Integration test that exercises the MCP server over HTTP and stdio with example tools."""
 
 import asyncio
 from collections.abc import AsyncGenerator
@@ -15,6 +15,7 @@ from hopeit_agents.mcp_client.models import (
     ToolExecutionStatus,
     Transport,
 )
+from hopeit_agents.mcp_server.server import handler as handler_module
 from hopeit_agents.mcp_server.server import mcp as mcp_server
 
 pytestmark = pytest.mark.asyncio
@@ -24,7 +25,6 @@ _CONFIG_FILES = [
     "plugins/mcp/mcp-server/config/plugin-config.json",
     "examples/plugins/example-tool/config/plugin-config.json",
 ]
-# _REPO_ROOT = Path(__file__).resolve().parents[4]
 
 
 async def _wait_for_server_start(server: uvicorn.Server, timeout: float = 10.0) -> None:
@@ -39,7 +39,11 @@ async def _wait_for_server_start(server: uvicorn.Server, timeout: float = 10.0) 
 
 def _server_port(server: uvicorn.Server) -> int:
     """Return the bound TCP port for the given uvicorn server instance."""
-    sockets = [sock for http_server in server.servers or [] for sock in (http_server.sockets or [])]
+    sockets = [
+        sock
+        for http_server in server.servers or []
+        for sock in (http_server.sockets or [])
+    ]
     if not sockets:
         raise RuntimeError("MCP server sockets not bound.")
     return int(sockets[0].getsockname()[1])
@@ -66,15 +70,10 @@ async def mcp_http_endpoint() -> AsyncGenerator[tuple[str, int], None]:
         await asyncio.sleep(0)
         if server_task.done():
             exc = server_task.exception()
-            if isinstance(exc, SystemExit):  # pragma: no cover - sandbox restriction
-                pytest.skip("Uvicorn could not bind required port inside sandboxed environment")
-        try:
-            await _wait_for_server_start(server)
-        except SystemExit as exc:  # pragma: no cover - environment-specific safeguard
-            server_task.cancel()
-            with suppress(asyncio.CancelledError):
-                await server_task
-            pytest.skip(f"MCP server could not start: {exc}")
+            if exc is None:
+                pytest.fail("MCP HTTP server exited before startup without error.")
+            pytest.fail(f"MCP HTTP server exited before startup: {exc}")
+        await _wait_for_server_start(server)
         port = _server_port(server)
         yield "127.0.0.1", port
     finally:
@@ -89,9 +88,12 @@ async def mcp_http_endpoint() -> AsyncGenerator[tuple[str, int], None]:
         else:
             with suppress(asyncio.CancelledError, SystemExit):
                 await server_task
+        handler_module._server = handler_module.Server()
 
 
-async def test_mcp_server_serves_example_tools(mcp_http_endpoint: tuple[str, int]) -> None:
+async def test_mcp_server_serves_example_tools(
+    mcp_http_endpoint: tuple[str, int],
+) -> None:
     """Verify the MCP server can list and invoke the bundled example tools."""
     host, port = mcp_http_endpoint
     client_config = MCPClientConfig(
@@ -153,6 +155,7 @@ async def test_mcp_server_returns_method_not_found_for_unknown_tool(
 
             assert result.isError is True
             assert any(
-                isinstance(block, types.TextContent) and "Invalid tool name" in block.text
+                isinstance(block, types.TextContent)
+                and "Invalid tool name" in block.text
                 for block in result.content
             )
