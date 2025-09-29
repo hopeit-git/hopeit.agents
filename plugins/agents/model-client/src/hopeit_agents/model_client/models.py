@@ -81,16 +81,16 @@ class Message:
 class Conversation:
     """Ordered list of messages forming the conversation context."""
 
+    conversation_id: str
     messages: list[Message]
-    agent_id: str | None = None
     session_id: str | None = None
     created_at: datetime = field(default_factory=lambda: datetime.now(UTC))
 
     def with_message(self, message: Message) -> "Conversation":
         """Return a new conversation with an additional message."""
         return Conversation(
+            conversation_id=self.conversation_id,
             messages=[*self.messages, message],
-            agent_id=self.agent_id,
             session_id=self.session_id,
             created_at=self.created_at,
         )

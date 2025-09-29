@@ -2,7 +2,7 @@
 name = "hopeit-agents.model-client"
 version = "0.1.0"
 
-description = "Hopeit plugin agent tools"
+description = "Hopeit Agents: LLM models client"
 dynamic = ["readme"]
 
 dependencies = [

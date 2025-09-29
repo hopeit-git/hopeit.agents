@@ -1,14 +1,13 @@
 [project]
-name = "hopeit-agents.mcp-server"
+name = "hopeit-agents.agent-toolkit"
 version = "0.1.0"
 
-description = "Hopeit Agents: Model Context Protocol server"
+description = "Hopeit Agents: Agent Toolkit plugin"
 dynamic = ["readme"]
 
 dependencies = [
     "hopeit.engine>=0.27.0",
-    "mcp>=1.14.1",
-    "click>=8.1.8",
+    "hopeit-agents.mcp-client",
 ]
 
 license = { text = "Apache 2" }
@@ -36,6 +35,3 @@ where = ["src"]
 
 [tool.setuptools.dynamic]
 readme = { file = ["README.md"], content-type = "text/markdown" }
-
-[project.scripts]
-hopeit_mcp_server = "hopeit_agents.mcp_server.cli.server:server"

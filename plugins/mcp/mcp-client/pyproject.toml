@@ -2,7 +2,7 @@
 name = "hopeit-agents.mcp-client"
 version = "0.1.0"
 
-description = "Hopeit plugin bridging to Model Context Protocol tools"
+description = "Hopeit Agents: Model Context Protocol tools client"
 dynamic = ["readme"]
 
 dependencies = [

@@ -7,17 +7,17 @@ from hopeit.app.context import EventContext
 from hopeit.app.logger import app_extra_logger
 from hopeit.dataobjects.payload import Payload
 
-from hopeit_agents.example_agents.models import AgentRequest, AgentResponse
-from hopeit_agents.example_agents.settings import AgentSettings
-from hopeit_agents.mcp_client.agent_tooling import (
+from hopeit_agents.agent_toolkit.mcp.agent_tools import (
     ToolCallRecord,
 )
-from hopeit_agents.mcp_client.agent_tooling import (
+from hopeit_agents.agent_toolkit.mcp.agent_tools import (
     execute_tool_calls as bridge_execute_tool_calls,
 )
-from hopeit_agents.mcp_client.agent_tooling import (
+from hopeit_agents.agent_toolkit.mcp.agent_tools import (
     resolve_tool_prompt as bridge_resolve_tool_prompt,
 )
+from hopeit_agents.agent_toolkit.settings import AgentSettings
+from hopeit_agents.example_agents.models import AgentRequest, AgentResponse
 from hopeit_agents.mcp_client.models import BridgeConfig, ToolExecutionResult, ToolInvocation
 from hopeit_agents.model_client.api import generate as model_generate
 from hopeit_agents.model_client.client import ModelClientError
@@ -55,7 +55,7 @@ async def run_agent(payload: AgentRequest, context: EventContext) -> AgentRespon
     )
     completion_config = CompletionConfig(available_tools=tools)
     conversation = build_conversation(
-        payload.conversation,
+        None,
         user_message=payload.user_message,
         system_prompt=agent_settings.system_prompt,
         tool_prompt=tool_prompt,

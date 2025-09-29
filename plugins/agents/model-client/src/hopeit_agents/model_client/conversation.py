@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import uuid
+
 from hopeit_agents.model_client.models import Conversation, Message, Role
 
 __all__ = ["build_conversation"]
@@ -31,4 +33,7 @@ def build_conversation(
             )
 
     base_messages.append(Message(role=Role.USER, content=user_message))
-    return Conversation(messages=base_messages)
+    return Conversation(
+        conversation_id=existing.conversation_id if existing else str(uuid.uuid4()),
+        messages=base_messages,
+    )

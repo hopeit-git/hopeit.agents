@@ -5,7 +5,7 @@ from typing import Any
 from hopeit.app.logger import app_extra_logger
 from hopeit.dataobjects import dataclass, dataobject, field
 
-from hopeit_agents.mcp_client.agent_tooling import (
+from hopeit_agents.agent_toolkit.mcp.agent_tools import (
     ToolCallRecord,
 )
 from hopeit_agents.model_client.models import Conversation, Message
@@ -20,7 +20,6 @@ class AgentRequest:
 
     agent_id: str
     user_message: str
-    conversation: Conversation | None = None
     metadata: dict[str, Any] = field(default_factory=dict)
 
 
@@ -63,7 +62,7 @@ class ExpertAgentResults:
 class ExpertAgentResponse:
     """Agent execution output."""
 
-    agent_id: str
+    conversation_id: str
     results: ExpertAgentResults | None
     error: str | None = None
     assistant_message: Message | None = None

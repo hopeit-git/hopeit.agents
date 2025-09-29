@@ -7,6 +7,7 @@ dynamic = ["readme"]
 
 dependencies = [
     "hopeit.engine>=0.27.0",
+    "hopeit-agents.agent-toolkit",
     "hopeit-agents.mcp-server",
     "hopeit-agents.mcp-client",
 ]

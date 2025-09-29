@@ -7,7 +7,7 @@
 
 **hopeit.agents** provides plugins and libraries to build and run straightforward multi-agent systems, expose agents using http endpoints, use and serve Model Context Protocol (MCP) tools, provide agent-as-a-tool support for sync agent-to-agent communication and manage asynchrounous message and job submissions between agents.
 
-This project builds on [hopeit.engine](https://github.com/hopeit-git/hopeit.engine) to take advange of its building blocks: Apps that serve events, and plugins to support common functionallity.
+This project builds on [hopeit.engine](https://github.com/hopeit-git/hopeit.engine) to take advange of its building blocks: Apps that serve events and communicate sychronously via http or asynchronously using streams, and plugins to support common functionallity.
 
 ```mermaid
 flowchart LR
