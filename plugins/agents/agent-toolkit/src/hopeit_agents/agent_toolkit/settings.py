@@ -1,3 +1,5 @@
+"""Dataclasses that configure the example agent behaviour."""
+
 from hopeit.dataobjects import dataclass, dataobject
 
 

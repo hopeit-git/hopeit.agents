@@ -1,4 +1,4 @@
-"""Sum two numbers tool event."""
+"""Expert agent event that orchestrates a tool-enabled conversation."""
 
 from hopeit.app.api import event_api
 from hopeit.app.context import EventContext
@@ -44,7 +44,7 @@ __mcp__ = event_tool_api(
 
 
 async def init_conversation(payload: ExpertAgentRequest, context: EventContext) -> AgentLoopPayload:
-    """Execute the agent loop: model completion, optional tool calls."""
+    """Prepare the expert agent conversation and tool configuration."""
     agent_settings = context.settings(key="expert_agent_llm", datatype=AgentSettings)
     mcp_settings = context.settings(key="mcp_client_example_tools", datatype=MCPClientConfig)
     tool_prompt, tools = await resolve_tool_prompt(
@@ -76,6 +76,7 @@ async def init_conversation(payload: ExpertAgentRequest, context: EventContext) 
 
 
 async def result(payload: AgentLoopResult, context: EventContext) -> ExpertAgentResponse:
+    """Convert the last loop message into an expert agent response payload."""
     try:
         last_message = payload.conversation.messages[-1]
 

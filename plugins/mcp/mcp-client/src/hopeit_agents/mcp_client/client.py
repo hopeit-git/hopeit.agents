@@ -102,6 +102,7 @@ class MCPClient:
 
     @asynccontextmanager
     async def _session(self) -> AsyncIterator[ClientSession]:
+        """Yield an initialised MCP client session using the configured transport."""
         transport = self._config.transport
         if transport is Transport.HTTP:
             url = self._config.url
@@ -143,6 +144,7 @@ class MCPClient:
 
     @staticmethod
     def _tool_from_mcp(tool: types.Tool) -> ToolDescriptor:
+        """Map an MCP tool descriptor into the internal dataclass representation."""
         return ToolDescriptor(
             name=tool.name,
             title=tool.title,
@@ -161,6 +163,7 @@ class MCPClient:
     def _tool_result_from_mcp(
         tool_name: str, result: types.CallToolResult, *, call_id: str, session_id: str | None
     ) -> ToolExecutionResult:
+        """Convert an MCP tool response into the high-level execution result schema."""
         content: list[dict[str, Any]] = []
         for item in result.content:
             if hasattr(item, "model_dump"):

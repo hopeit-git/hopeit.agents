@@ -1,6 +1,8 @@
+"""Register hopeit events as MCP tools and dispatch incoming calls."""
+
 import logging
 import uuid
-from collections.abc import Coroutine
+from collections.abc import Awaitable, Callable
 from datetime import UTC, datetime
 from functools import partial
 from typing import Any
@@ -23,10 +25,12 @@ logger: EngineLoggerWrapper = logging.getLogger(__name__)  # type: ignore
 extra = extra_logger()
 
 
-type CallableHandler = partial[Coroutine[Any, Any, dict[str, Any]]]
+CallableHandler = Callable[[dict[str, Any], dict[str, str] | None], Awaitable[dict[str, Any]]]
 
 
 class Server:
+    """In-memory registry of tool descriptors and their call handlers."""
+
     def __init__(self) -> None:
         self.tools: list[mcp.types.Tool] = []
         self.handlers: dict[str, CallableHandler] = {}
@@ -37,6 +41,7 @@ auth_info_default: dict[str, str] = {}
 
 
 def init_logger() -> None:
+    """Initialise the module logger using the engine configuration."""
     global logger
     logger = engine_logger()
 
@@ -58,9 +63,7 @@ def register_tool(
     event_name: str,
     event_info: EventDescriptor,
 ) -> None:
-    """
-    Creates route for handling POST event
-    """
+    """Register a tool handler for the given event and cache it for dispatching."""
     datatype = find_datatype_handler(
         app_config=app_engine.app_config, event_name=event_name, event_info=event_info
     )
@@ -89,6 +92,7 @@ def register_tool(
 
 
 def tool_list() -> list[mcp.types.Tool]:
+    """Return the list of tools currently registered with the handler."""
     return _server.tools
 
 
@@ -98,6 +102,7 @@ async def invoke_tool(
     payload_raw: dict[str, Any],
     headers: dict[str, str] | None,
 ) -> dict[str, Any]:
+    """Execute the handler associated with `tool_name` using the provided payload."""
     handler = _server.handlers.get(tool_name)
     if handler is None:
         raise ValueError(f"Invalid tool name: '{tool_name}'.")
@@ -113,9 +118,7 @@ async def _handle_tool_invocation(
     payload_raw: dict[str, Any],
     headers: dict[str, str] | None,
 ) -> dict[str, Any]:
-    """
-    Handler to execute tool calls
-    """
+    """Execute a tool call from MCP by invoking the underlying hopeit event."""
     context = None
     try:
         event_settings = get_event_settings(app_engine.settings, event_name)
@@ -141,9 +144,7 @@ def _request_start(
     event_settings: EventSettings[DataObject],
     headers: dict[str, str] | None,
 ) -> EventContext:
-    """
-    Extracts context and track information from a request and logs start of event
-    """
+    """Build the event context and emit the start log entry for the invocation."""
     context = EventContext(
         app_config=app_engine.app_config,
         plugin_config=plugin.app_config,
@@ -162,9 +163,7 @@ async def _request_execute(
     context: EventContext,
     payload: DataObject,
 ) -> DataObject:
-    """
-    Executes request using engine event handler
-    """
+    """Invoke the hopeit engine event and log completion metrics."""
     result = await app_engine.execute(context=context, query_args=None, payload=payload)
     logger.done(context, extra=metrics(context))
     return result  # type: ignore[return-value]
@@ -179,6 +178,7 @@ async def _request_execute(
 
 
 def _track_ids(headers: dict[str, str]) -> dict[str, str]:
+    """Generate tracking identifiers, merging any inbound `x-track-*` headers."""
     return {
         "track.operation_id": str(uuid.uuid4()),
         "track.request_id": str(uuid.uuid4()),

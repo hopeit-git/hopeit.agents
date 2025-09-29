@@ -1,3 +1,5 @@
+"""Tests for the random-number MCP example tool."""
+
 import pytest
 from hopeit.testing.apps import config, execute_event
 

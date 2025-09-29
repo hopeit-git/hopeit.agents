@@ -1,4 +1,4 @@
-"""Sum two numbers tool event."""
+"""Main agent event that coordinates the tool-enabled agent loop."""
 
 from hopeit.app.api import event_api
 from hopeit.app.context import EventContext
@@ -31,7 +31,7 @@ __api__ = event_api(
 
 
 async def init_conversation(payload: AgentRequest, context: EventContext) -> AgentLoopPayload:
-    """Execute the agent loop: model completion, optional tool calls."""
+    """Build the initial conversation and tool prompt for the main agent."""
     agent_settings = context.settings(key="main_agent_llm", datatype=AgentSettings)
     mcp_settings = context.settings(key="sub_agents_mcp_client", datatype=MCPClientConfig)
     tool_prompt, tools = await resolve_tool_prompt(
@@ -59,6 +59,7 @@ async def init_conversation(payload: AgentRequest, context: EventContext) -> Age
 
 
 async def result(payload: AgentLoopResult, context: EventContext) -> AgentResponse:
+    """Wrap the final loop message and tool call log into a response object."""
     last_message = payload.conversation.messages[-1]
     response = AgentResponse(
         conversation=payload.conversation,

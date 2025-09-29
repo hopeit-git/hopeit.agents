@@ -56,6 +56,7 @@ class AsyncModelClient:
         self._deployment_name = deployment_name
 
     def _build_url(self) -> str:
+        """Return the chat completions endpoint URL including optional deployment params."""
         url = f"{self._base_url.strip('/')}/chat/completions"
         if self._deployment_name:
             url = url.replace("{DEPLOYMENT_NAME}", self._deployment_name)
@@ -88,6 +89,7 @@ class AsyncModelClient:
                 return await self._parse_response(request.conversation, response, config)
 
     def _build_headers(self) -> Mapping[str, str]:
+        """Compose the HTTP headers required by the target provider."""
         headers = {"Content-Type": "application/json"}
         if self._api_key:
             headers["api-key"] = self._api_key
@@ -100,6 +102,7 @@ class AsyncModelClient:
         conversation: Conversation,
         config: CompletionConfig,
     ) -> dict[str, Any]:
+        """Convert the conversation and completion config into an OpenAI-compatible payload."""
         body: dict[str, Any] = {
             "model": config.model,
             "messages": [message_to_openai_dict(msg) for msg in conversation.messages],
@@ -136,6 +139,7 @@ class AsyncModelClient:
         response: ClientResponse,
         config: CompletionConfig,
     ) -> CompletionResponse:
+        """Validate the HTTP response and map it to internal completion objects."""
         try:
             payload = await response.json()
         except ClientError as exc:  # pragma: no cover - network issues mapped once

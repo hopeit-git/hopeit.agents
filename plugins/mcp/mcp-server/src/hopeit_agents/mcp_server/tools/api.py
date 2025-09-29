@@ -1,3 +1,5 @@
+"""Utilities for building MCP tool descriptions from hopeit event metadata."""
+
 import inspect
 import re
 from collections.abc import Callable, Generator
@@ -28,7 +30,7 @@ def event_tool_api(
     payload: PayloadDef,
     response: PayloadDef,
 ) -> Callable[..., dict[str, Any]]:
-    """Build an event tool handler that exposes Hopeit events through MCP."""
+    """Build a deferred handler that renders the MCP spec for an event."""
     return partial(_event_tool_api, summary, description, payload, response)
 
 
@@ -42,9 +44,7 @@ def _event_tool_api(
     event_name: str,
     plugin: AppConfig | None,
 ) -> dict[str, Any]:
-    """
-    Handler returned by event_tool_api(...)
-    """
+    """Render the OpenAPI-like MCP method spec for a hopeit event."""
     method_spec: dict[str, Any] = {
         "summary": _method_summary(module, summary),
         "description": _method_description(module, description, summary),
@@ -79,6 +79,7 @@ def _event_tool_api(
 
 
 def _datatype_schema(event_name: str, datatype: type) -> dict[str, Any]:
+    """Return the JSON schema for a hopeit dataobject datatype."""
     origin = get_origin(datatype)
     if origin is None:
         origin = datatype
@@ -92,11 +93,13 @@ def _datatype_schema(event_name: str, datatype: type) -> dict[str, Any]:
 
 
 def _payload_schema(event_name: str, arg: PayloadDef) -> dict[str, Any]:
+    """Extract the schema portion out of a payload definition tuple."""
     datatype = arg[0] if isinstance(arg, tuple) else arg
     return _datatype_schema(event_name, datatype)
 
 
 def _payload_description(arg: PayloadDef) -> str:
+    """Return the human-readable description associated with a payload definition."""
     if isinstance(arg, tuple):
         return arg[1]
     if hasattr(arg, "__name__"):
@@ -105,6 +108,7 @@ def _payload_description(arg: PayloadDef) -> str:
 
 
 def _method_summary(module: str, summary: str | None = None) -> str:
+    """Use the provided summary or derive one from the module docstring."""
     if summary is not None:
         return summary
     doc_str = inspect.getdoc(module)
@@ -116,6 +120,7 @@ def _method_summary(module: str, summary: str | None = None) -> str:
 def _method_description(
     module: str, description: str | None = None, summary: str | None = None
 ) -> str:
+    """Use the provided description or fallback to additional module documentation."""
     if description is not None:
         return description
     doc_str = inspect.getdoc(module)
@@ -125,6 +130,8 @@ def _method_description(
 
 
 class ToolEventInfo(NamedTuple):
+    """Metadata describing how a hopeit event is exposed as an MCP tool."""
+
     event_name: str
     event_info: EventDescriptor
     tool: types.Tool
@@ -176,9 +183,7 @@ def extract_app_tool_specs(
 def _extract_event_tool_spec(
     app_config: AppConfig, event_name: str, event_info: EventDescriptor
 ) -> dict[str, Any]:
-    """
-    Extract __mcp__ definition from event implementation
-    """
+    """Fetch the `__mcp__` specification from an event implementation module."""
     module = find_event_handler(app_config=app_config, event_name=event_name, event_info=event_info)
     if hasattr(module, "__mcp__"):
         method_spec = module.__mcp__
@@ -195,9 +200,7 @@ def app_tool_name(
     plugin: AppDescriptor | None = None,
     override_route_name: str | None = None,
 ) -> tuple[str, str]:
-    """
-    Returns the a tuple with the fully qualified tool name, a simplified name for a given tool
-    """
+    """Return the full MCP tool name and the exposed simplified name."""
     components = [
         app.name,
         *([plugin.name] if plugin else []),

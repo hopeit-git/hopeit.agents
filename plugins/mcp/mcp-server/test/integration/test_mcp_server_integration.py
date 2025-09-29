@@ -28,6 +28,7 @@ _CONFIG_FILES = [
 
 
 async def _wait_for_server_start(server: uvicorn.Server, timeout: float = 10.0) -> None:
+    """Poll the uvicorn server until it signals readiness or a timeout expires."""
     loop = asyncio.get_running_loop()
     deadline = loop.time() + timeout
     while not server.started:
@@ -37,6 +38,7 @@ async def _wait_for_server_start(server: uvicorn.Server, timeout: float = 10.0) 
 
 
 def _server_port(server: uvicorn.Server) -> int:
+    """Return the bound TCP port for the given uvicorn server instance."""
     sockets = [sock for http_server in server.servers or [] for sock in (http_server.sockets or [])]
     if not sockets:
         raise RuntimeError("MCP server sockets not bound.")
@@ -45,6 +47,7 @@ def _server_port(server: uvicorn.Server) -> int:
 
 @pytest.fixture
 async def mcp_http_endpoint() -> AsyncGenerator[tuple[str, int], None]:
+    """Host the MCP HTTP app on an ephemeral port for the duration of a test."""
     app = mcp_server._create_http_app(
         config_files=_CONFIG_FILES,
         enabled_groups=[],
@@ -89,6 +92,7 @@ async def mcp_http_endpoint() -> AsyncGenerator[tuple[str, int], None]:
 
 
 async def test_mcp_server_serves_example_tools(mcp_http_endpoint: tuple[str, int]) -> None:
+    """Verify the MCP server can list and invoke the bundled example tools."""
     host, port = mcp_http_endpoint
     client_config = MCPClientConfig(
         transport=Transport.HTTP,
@@ -130,6 +134,7 @@ async def test_mcp_server_serves_example_tools(mcp_http_endpoint: tuple[str, int
 async def test_mcp_server_returns_method_not_found_for_unknown_tool(
     mcp_http_endpoint: tuple[str, int],
 ) -> None:
+    """Ensure the server returns an error when clients call an unknown tool."""
     host, port = mcp_http_endpoint
     url = f"http://{host}:{port}/mcp"
 

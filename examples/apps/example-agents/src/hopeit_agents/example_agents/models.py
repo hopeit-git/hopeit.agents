@@ -44,6 +44,8 @@ class ExpertAgentRequest:
 @dataobject
 @dataclass
 class ExpressionValue:
+    """Result of evaluating a single expression handled by the expert agent."""
+
     expr: str
     value: int
 
@@ -51,6 +53,8 @@ class ExpressionValue:
 @dataobject
 @dataclass
 class ExpertAgentResults:
+    """Aggregated expression results produced by the expert agent loop."""
+
     expr_values: list[ExpressionValue]
 
 

@@ -1,3 +1,5 @@
+"""HTTP-facing MCP server that exposes hopeit events as tools."""
+
 import asyncio
 import gc
 import logging
@@ -82,6 +84,7 @@ def _create_http_app(
     enabled_groups: list[str],
     start_streams: bool,
 ) -> Starlette:
+    """Construct the Starlette application that fronts the MCP session manager."""
     session_manager = StreamableHTTPSessionManager(mcp_server)
 
     @asynccontextmanager
@@ -252,16 +255,12 @@ def stream_startup_hook(app_config: AppConfig) -> None:
 
 
 def _load_engine_config(path: str) -> ServerConfig:
-    """
-    Load engine configuration from json file
-    """
+    """Load the hopeit server configuration from the provided JSON file."""
     with open(path, encoding="utf-8") as f:
         return parse_server_config_json(f.read())
 
 
 def _load_app_config(path: str) -> AppConfig:
-    """
-    Load app configuration from json file
-    """
+    """Load an app configuration from the provided JSON file."""
     with open(path, encoding="utf-8") as f:
         return parse_app_config_json(f.read())

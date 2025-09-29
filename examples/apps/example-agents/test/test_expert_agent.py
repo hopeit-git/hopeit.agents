@@ -1,3 +1,5 @@
+"""End-to-end tests for the example tool exposed via the expert agent."""
+
 import pytest
 from hopeit.testing.apps import config, execute_event
 

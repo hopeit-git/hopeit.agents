@@ -1,3 +1,5 @@
+"""Integration tests that exercise the example random number tool."""
+
 import pytest
 from hopeit.testing.apps import config, execute_event
 

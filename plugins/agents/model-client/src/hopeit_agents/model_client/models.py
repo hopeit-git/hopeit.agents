@@ -34,6 +34,8 @@ class ToolSpec:
 @dataobject
 @dataclass
 class ToolFunctionCall:
+    """Function payload included in a tool call."""
+
     name: str
     arguments: str
 
@@ -73,6 +75,7 @@ class Message:
 
     @classmethod
     def empty(cls) -> "Message":
+        """Return a placeholder system message used for initialisation."""
         return cls(role=Role.SYSTEM, content="")
 
 
@@ -150,6 +153,7 @@ def message_to_openai_dict(message: Message) -> dict[str, Any]:
 
 
 def messages_from_tool_calls(tool_calls: list[ToolCall]) -> list[Message]:
+    """Represent tool calls as assistant messages for conversation continuity."""
     return [
         Message(
             role=Role.ASSISTANT,
@@ -194,6 +198,7 @@ def tool_call_from_openai_dict(
 def _resolve_tool_name(
     extracted_name: str, parsed_args: dict[str, Any], available_tools: list[ToolDescriptor]
 ) -> str:
+    """Resolve the best matching tool name using extracted data and known descriptors."""
     tool_names = {t.name for t in available_tools}
     # Resolve tool name
     if spinalcase(extracted_name) not in tool_names:
@@ -209,6 +214,7 @@ def _resolve_tool_name(
 def _resolve_arguments(
     tool_name: str, parsed_args: dict[str, Any], available_tools: list[ToolDescriptor]
 ) -> tuple[str, dict[str, Any]]:
+    """Normalize arguments to match the resolved tool schema when possible."""
     for t in available_tools:
         if tool_name == t.name:
             if parsed_args.keys() == t.input_schema["properties"].keys():

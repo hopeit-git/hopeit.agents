@@ -1,3 +1,5 @@
+"""Tests for the sum-two-numbers MCP example tool."""
+
 import pytest
 from hopeit.testing.apps import config, execute_event
 
