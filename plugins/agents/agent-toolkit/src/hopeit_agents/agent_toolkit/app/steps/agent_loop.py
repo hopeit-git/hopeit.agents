@@ -1,3 +1,5 @@
+"""Hopeit event step that runs an agent loop capable of executing MCP tools."""
+
 from typing import Any
 
 from hopeit.app.context import EventContext
@@ -28,12 +30,16 @@ from hopeit_agents.model_client.models import (
 @dataobject
 @dataclass
 class AgentLoopConfig:
+    """Configuration describing how many iterations the loop can run."""
+
     max_iterations: int
 
 
 @dataobject
 @dataclass
 class AgentLoopPayload:
+    """Input payload required to run the agent loop."""
+
     conversation: Conversation
     completion_config: CompletionConfig
     loop_config: AgentLoopConfig
@@ -44,6 +50,8 @@ class AgentLoopPayload:
 @dataobject
 @dataclass
 class AgentLoopResult:
+    """Outcome of the agent loop including the final conversation and tool log."""
+
     conversation: Conversation
     tool_call_log: list[ToolCallRecord]
 
@@ -51,6 +59,23 @@ class AgentLoopResult:
 async def agent_with_tools_loop(
     payload: AgentLoopPayload, context: EventContext
 ) -> AgentLoopResult:
+    """Execute the agent reasoning loop using an LLM with optional tool calls.
+
+    The loop keeps requesting completions from the model until it either produces
+    a final assistant message or reaches the configured maximum number of
+    iterations. When the model returns tool calls and tools are enabled, the
+    calls are executed using the MCP bridge and the results appended to the
+    conversation, allowing the model to observe tool responses in subsequent
+    turns.
+
+    Args:
+        payload: Aggregated configuration, conversation state, and MCP settings.
+        context: Hopeit event context used to execute the model and tools.
+
+    Returns:
+        AgentLoopResult containing the updated conversation and executed tool log.
+    """
+
     conversation = payload.conversation
     completion_config = payload.completion_config
     loop_config = payload.loop_config
@@ -121,6 +146,8 @@ async def agent_with_tools_loop(
 
 
 def _format_tool_result(result: ToolExecutionResult) -> str:
+    """Return a JSON-formatted string for tool execution results."""
+
     if result.structured_content is not None:
         return Payload.to_json(result.structured_content, indent=2)
     return Payload.to_json(result.content, indent=2)

@@ -1,7 +1,6 @@
 """Integration test that exercises the MCP server over HTTP with example tools."""
 
 import asyncio
-import os
 from collections.abc import AsyncGenerator
 from contextlib import suppress
 
@@ -46,8 +45,6 @@ def _server_port(server: uvicorn.Server) -> int:
 
 @pytest.fixture
 async def mcp_http_endpoint() -> AsyncGenerator[tuple[str, int], None]:
-    os.environ.setdefault("MCP_RANDOM_SEED", "1234")
-    # config_paths = [str(_REPO_ROOT / path) for path in _CONFIG_FILES]
     app = mcp_server._create_http_app(
         config_files=_CONFIG_FILES,
         enabled_groups=[],

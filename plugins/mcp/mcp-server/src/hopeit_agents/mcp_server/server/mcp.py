@@ -168,6 +168,7 @@ async def prepare_engine(
 
     # Register MCP tools
     logger.info(__name__, "Registering tools...")
+    handler.reset()
     register_tool_handlers(apps_config, enabled_groups=enabled_groups)
 
     # web_server.on_shutdown.append(_shutdown_hook)
@@ -218,6 +219,7 @@ async def server_startup_hook(config: ServerConfig) -> None:
 async def stop_server() -> None:
     """Shut down the hopeit runtime server."""
     await runtime.server.stop()
+    handler.reset()
 
 
 async def app_startup_hook(config: AppConfig, enabled_groups: list[str]) -> None:

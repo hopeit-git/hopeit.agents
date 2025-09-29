@@ -41,6 +41,15 @@ def init_logger() -> None:
     logger = engine_logger()
 
 
+def reset() -> None:
+    """Reset registered tools and handlers.
+
+    Ensures a fresh registry for subsequent server startups (e.g. during tests).
+    """
+    _server.tools.clear()
+    _server.handlers.clear()
+
+
 def register_tool(
     tool: mcp.types.Tool,
     app_engine: AppEngine,
