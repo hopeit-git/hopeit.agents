@@ -1,24 +1,27 @@
-"""hopeit_agents MCP client plugin."""
+"""Top-level exports for the agent toolkit plugin."""
 
-from hopeit_agents.mcp_client.client import MCPClient, MCPClientError
-from hopeit_agents.mcp_client.models import (
-    MCPClientConfig,
-    ToolCallRecord,
-    ToolCallRequestLog,
-    ToolDescriptor,
-    ToolExecutionResult,
-    ToolExecutionStatus,
-    ToolInvocation,
+from .agents import AgentConfig, compute_agent_config_version, create_agent_config
+from .app import AgentLoopConfig, AgentLoopPayload, AgentLoopResult, AgentSettings, agent_with_tools_loop
+from .mcp import (
+    build_tool_prompt,
+    call_tool,
+    execute_tool_calls,
+    format_tool_descriptions,
+    resolve_tool_prompt,
 )
 
 __all__ = [
-    "MCPClientConfig",
-    "MCPClient",
-    "MCPClientError",
-    "ToolCallRecord",
-    "ToolCallRequestLog",
-    "ToolDescriptor",
-    "ToolExecutionResult",
-    "ToolExecutionStatus",
-    "ToolInvocation",
+    "AgentConfig",
+    "AgentLoopConfig",
+    "AgentLoopPayload",
+    "AgentLoopResult",
+    "AgentSettings",
+    "agent_with_tools_loop",
+    "build_tool_prompt",
+    "call_tool",
+    "compute_agent_config_version",
+    "create_agent_config",
+    "execute_tool_calls",
+    "format_tool_descriptions",
+    "resolve_tool_prompt",
 ]

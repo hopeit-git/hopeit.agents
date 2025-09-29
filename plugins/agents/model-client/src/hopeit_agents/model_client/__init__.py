@@ -1,24 +1,39 @@
-"""hopeit_agents MCP client plugin."""
+"""Public API for the hopeit_agents model client plugin."""
 
-from hopeit_agents.mcp_client.client import MCPClient, MCPClientError
-from hopeit_agents.mcp_client.models import (
-    MCPClientConfig,
-    ToolCallRecord,
-    ToolCallRequestLog,
-    ToolDescriptor,
-    ToolExecutionResult,
-    ToolExecutionStatus,
-    ToolInvocation,
+from .api.generate import generate
+from .client import AsyncModelClient, ModelClientError
+from .conversation import build_conversation
+from .models import (
+    CompletionConfig,
+    CompletionRequest,
+    CompletionResponse,
+    Conversation,
+    Message,
+    Role,
+    ToolCall,
+    ToolFunctionCall,
+    ToolResult,
+    ToolSpec,
+    Usage,
 )
+from .settings import ModelClientSettings, merge_config
 
 __all__ = [
-    "MCPClientConfig",
-    "MCPClient",
-    "MCPClientError",
-    "ToolCallRecord",
-    "ToolCallRequestLog",
-    "ToolDescriptor",
-    "ToolExecutionResult",
-    "ToolExecutionStatus",
-    "ToolInvocation",
+    "AsyncModelClient",
+    "CompletionConfig",
+    "CompletionRequest",
+    "CompletionResponse",
+    "Conversation",
+    "Message",
+    "ModelClientError",
+    "ModelClientSettings",
+    "Role",
+    "ToolCall",
+    "ToolFunctionCall",
+    "ToolResult",
+    "ToolSpec",
+    "Usage",
+    "build_conversation",
+    "generate",
+    "merge_config",
 ]
