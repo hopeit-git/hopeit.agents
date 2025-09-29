@@ -10,12 +10,10 @@ from hopeit_agents.agent_toolkit.app.steps.agent_loop import (
     AgentLoopResult,
     agent_with_tools_loop,
 )
-from hopeit_agents.agent_toolkit.mcp.agent_tools import (
-    resolve_tool_prompt as bridge_resolve_tool_prompt,
-)
+from hopeit_agents.agent_toolkit.mcp.agent_tools import resolve_tool_prompt
 from hopeit_agents.agent_toolkit.settings import AgentSettings
 from hopeit_agents.example_agents.models import AgentRequest, AgentResponse
-from hopeit_agents.mcp_client.models import BridgeConfig
+from hopeit_agents.mcp_client.models import MCPClientConfig
 from hopeit_agents.model_client.conversation import build_conversation
 from hopeit_agents.model_client.models import CompletionConfig
 
@@ -35,8 +33,8 @@ __api__ = event_api(
 async def init_conversation(payload: AgentRequest, context: EventContext) -> AgentLoopPayload:
     """Execute the agent loop: model completion, optional tool calls."""
     agent_settings = context.settings(key="main_agent_llm", datatype=AgentSettings)
-    mcp_settings = context.settings(key="sub_agents_mcp_client", datatype=BridgeConfig)
-    tool_prompt, tools = await bridge_resolve_tool_prompt(
+    mcp_settings = context.settings(key="sub_agents_mcp_client", datatype=MCPClientConfig)
+    tool_prompt, tools = await resolve_tool_prompt(
         mcp_settings,
         context,
         agent_id="latest",

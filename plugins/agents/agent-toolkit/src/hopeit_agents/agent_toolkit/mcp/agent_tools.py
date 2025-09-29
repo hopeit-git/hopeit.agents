@@ -11,7 +11,7 @@ from hopeit.app.logger import app_extra_logger
 
 from hopeit_agents.mcp_client.client import MCPClient, MCPClientError
 from hopeit_agents.mcp_client.models import (
-    BridgeConfig,
+    MCPClientConfig,
     ToolCallRecord,
     ToolCallRequestLog,
     ToolDescriptor,
@@ -34,7 +34,7 @@ __all__ = [
 
 
 async def resolve_tool_prompt(
-    config: BridgeConfig,
+    config: MCPClientConfig,
     context: EventContext,
     *,
     agent_id: str,
@@ -114,7 +114,7 @@ def format_tool_descriptions(
 
 
 async def call_tool(
-    config: BridgeConfig,
+    config: MCPClientConfig,
     context: EventContext,
     *,
     call_id: str,
@@ -122,7 +122,7 @@ async def call_tool(
     payload: dict[str, Any],
     session_id: str | None = None,
 ) -> ToolExecutionResult:
-    """Execute an MCP tool through the bridge using the provided payload."""
+    """Execute an MCP tool through the client using the provided payload."""
     env = build_environment(config, context.env)
     client = MCPClient(config=config, env=env)
     args = ToolInvocation(
@@ -145,7 +145,7 @@ async def call_tool(
 
 
 async def execute_tool_calls(
-    config: BridgeConfig,
+    config: MCPClientConfig,
     context: EventContext,
     *,
     tool_calls: list[ToolInvocation],

@@ -13,7 +13,7 @@ from hopeit_agents.agent_toolkit.app.steps import agent_loop
 from hopeit_agents.agent_toolkit.app.steps.agent_loop import AgentLoopConfig, AgentLoopPayload
 from hopeit_agents.agent_toolkit.settings import AgentSettings
 from hopeit_agents.mcp_client.models import (
-    BridgeConfig,
+    MCPClientConfig,
     ToolCallRecord,
     ToolCallRequestLog,
     ToolExecutionResult,
@@ -87,7 +87,7 @@ async def test_agent_loop_executes_tool_calls(monkeypatch: MonkeyPatch) -> None:
         completion_config=CompletionConfig(model="test-model"),
         loop_config=AgentLoopConfig(max_iterations=1),
         agent_settings=AgentSettings(enable_tools=True),
-        mcp_settings=BridgeConfig(command="demo"),
+        mcp_settings=MCPClientConfig(command="demo"),
     )
 
     context = MagicMock()
@@ -147,7 +147,7 @@ async def test_agent_loop_returns_assistant_message(monkeypatch: MonkeyPatch) ->
         completion_config=CompletionConfig(),
         loop_config=AgentLoopConfig(max_iterations=2),
         agent_settings=AgentSettings(enable_tools=True),
-        mcp_settings=BridgeConfig(),
+        mcp_settings=MCPClientConfig(),
     )
 
     context = MagicMock()

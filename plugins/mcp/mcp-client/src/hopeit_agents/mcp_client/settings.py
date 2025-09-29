@@ -1,16 +1,16 @@
-"""Settings helpers for the MCP bridge plugin."""
+"""Settings helpers for the MCP client plugin."""
 
 import re
 from collections.abc import Mapping
 from typing import Any
 
-from hopeit_agents.mcp_client.models import BridgeConfig
+from hopeit_agents.mcp_client.models import MCPClientConfig
 
 SETTINGS_KEY = "mcp_client"
 _PLACEHOLDER_RE = re.compile(r"^\$\{(?P<name>[A-Z0-9_]+)\}$")
 
 
-def build_environment(settings: BridgeConfig, context_env: Mapping[str, Any]) -> dict[str, str]:
+def build_environment(settings: MCPClientConfig, context_env: Mapping[str, Any]) -> dict[str, str]:
     """Resolve environment variables combining config and context env."""
     resolved: dict[str, str] = {}
     for key, value in settings.env.items():

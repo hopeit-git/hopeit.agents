@@ -11,7 +11,7 @@ from mcp.client.streamable_http import streamablehttp_client
 
 from hopeit_agents.mcp_client.client import MCPClient
 from hopeit_agents.mcp_client.models import (
-    BridgeConfig,
+    MCPClientConfig,
     ToolExecutionStatus,
     Transport,
 )
@@ -90,7 +90,7 @@ async def mcp_http_endpoint() -> AsyncGenerator[tuple[str, int], None]:
 
 async def test_mcp_server_serves_example_tools(mcp_http_endpoint: tuple[str, int]) -> None:
     host, port = mcp_http_endpoint
-    bridge_config = BridgeConfig(
+    client_config = MCPClientConfig(
         transport=Transport.HTTP,
         host=host,
         port=port,
@@ -98,7 +98,7 @@ async def test_mcp_server_serves_example_tools(mcp_http_endpoint: tuple[str, int
         list_timeout_seconds=5.0,
         call_timeout_seconds=10.0,
     )
-    client = MCPClient(config=bridge_config, env={"MCP_RANDOM_SEED": "1234"})
+    client = MCPClient(config=client_config, env={"MCP_RANDOM_SEED": "1234"})
 
     tools = await client.list_tools()
     names = {tool.name for tool in tools}

@@ -1,4 +1,4 @@
-"""Typed data objects for the MCP bridge plugin."""
+"""Typed data objects for the MCP client plugin."""
 
 from enum import Enum
 from typing import Any
@@ -170,7 +170,7 @@ class ToolCallRecord:
 
 @dataobject
 @dataclass
-class BridgeConfig:
+class MCPClientConfig:
     """Configuration required to communicate with an MCP server."""
 
     command: str | None = None

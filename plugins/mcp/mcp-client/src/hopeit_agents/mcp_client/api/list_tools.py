@@ -5,16 +5,16 @@ from hopeit.app.context import EventContext
 from hopeit.app.logger import app_extra_logger
 
 from hopeit_agents.mcp_client.client import MCPClient, MCPClientError
-from hopeit_agents.mcp_client.models import BridgeConfig, ToolDescriptor
+from hopeit_agents.mcp_client.models import MCPClientConfig, ToolDescriptor
 from hopeit_agents.mcp_client.settings import build_environment
 
 __steps__ = ["list_tools"]
 
 __api__ = event_api(
-    summary="hopeit_agents MCP bridge: list tools",
+    summary="hopeit_agents MCP client: list tools",
     responses={
         200: (list[ToolDescriptor], "Available tools"),
-        500: (str, "MCP bridge error"),
+        500: (str, "MCP client error"),
     },
 )
 
@@ -26,7 +26,7 @@ async def list_tools(
     context: EventContext,
 ) -> list[ToolDescriptor]:
     """Return tool descriptors using the configured MCP server."""
-    config = context.settings(key="mcp_client", datatype=BridgeConfig)
+    config = context.settings(key="mcp_client", datatype=MCPClientConfig)
     env = build_environment(config, context.env)
     client = MCPClient(config=config, env=env)
 

@@ -5,18 +5,18 @@ from hopeit.app.context import EventContext
 from hopeit.app.logger import app_extra_logger
 
 from hopeit_agents.mcp_client.client import MCPClient, MCPClientError
-from hopeit_agents.mcp_client.models import BridgeConfig, ToolExecutionResult, ToolInvocation
+from hopeit_agents.mcp_client.models import MCPClientConfig, ToolExecutionResult, ToolInvocation
 from hopeit_agents.mcp_client.settings import build_environment
 
 __steps__ = ["invoke_tool"]
 
 __api__ = event_api(
-    summary="hopeit_agents MCP bridge: invoke tool",
+    summary="hopeit_agents MCP client: invoke tool",
     payload=(ToolInvocation, "Tool invocation payload"),
     responses={
         200: (ToolExecutionResult, "Tool execution result"),
         404: (ToolExecutionResult, "Tool not found"),
-        500: (str, "MCP bridge error"),
+        500: (str, "MCP client error"),
     },
 )
 
@@ -25,7 +25,7 @@ logger, extra = app_extra_logger()
 
 async def invoke_tool(args: ToolInvocation, context: EventContext) -> ToolExecutionResult:
     """Invoke the requested tool using MCP."""
-    config = context.settings(key="mcp_client", datatype=BridgeConfig)
+    config = context.settings(key="mcp_client", datatype=MCPClientConfig)
     env = build_environment(config, context.env)
     client = MCPClient(config=config, env=env)
 

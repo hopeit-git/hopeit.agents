@@ -11,7 +11,7 @@ from hopeit_agents.agent_toolkit.mcp.agent_tools import (
 )
 from hopeit_agents.agent_toolkit.settings import AgentSettings
 from hopeit_agents.mcp_client.models import (
-    BridgeConfig,
+    MCPClientConfig,
     ToolCallRecord,
     ToolExecutionResult,
     ToolInvocation,
@@ -44,7 +44,7 @@ class AgentLoopPayload:
     completion_config: CompletionConfig
     loop_config: AgentLoopConfig
     agent_settings: AgentSettings
-    mcp_settings: BridgeConfig
+    mcp_settings: MCPClientConfig
 
 
 @dataobject
@@ -64,7 +64,7 @@ async def agent_with_tools_loop(
     The loop keeps requesting completions from the model until it either produces
     a final assistant message or reaches the configured maximum number of
     iterations. When the model returns tool calls and tools are enabled, the
-    calls are executed using the MCP bridge and the results appended to the
+    calls are executed using the MCP client and the results appended to the
     conversation, allowing the model to observe tool responses in subsequent
     turns.
 

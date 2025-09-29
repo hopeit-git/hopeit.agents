@@ -12,7 +12,7 @@ from mcp import ClientSession, McpError, StdioServerParameters, stdio_client, ty
 from mcp.client.streamable_http import streamablehttp_client
 
 from hopeit_agents.mcp_client.models import (
-    BridgeConfig,
+    MCPClientConfig,
     ToolAnnotations,
     ToolDescriptor,
     ToolExecutionResult,
@@ -23,7 +23,7 @@ from hopeit_agents.mcp_client.models import (
 
 @dataclass
 class MCPClientError(RuntimeError):
-    """Raised when bridge operations fail."""
+    """Raised when client operations fail."""
 
     message: str
     details: Mapping[str, Any] | None = None
@@ -35,7 +35,7 @@ class MCPClientError(RuntimeError):
 class MCPClient:
     """High-level wrapper over the official MCP SDK."""
 
-    def __init__(self, config: BridgeConfig, env: Mapping[str, str] | None = None) -> None:
+    def __init__(self, config: MCPClientConfig, env: Mapping[str, str] | None = None) -> None:
         self._config = config
         self._env = dict(env or {})
         self._tools_cache: tuple[float, list[ToolDescriptor]] | None = None

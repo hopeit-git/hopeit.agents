@@ -1,4 +1,4 @@
-"""Unit tests for the MCP bridge client helpers."""
+"""Unit tests for the MCP client helpers."""
 
 from __future__ import annotations
 
@@ -10,11 +10,11 @@ import pytest
 from mcp import types
 
 from hopeit_agents.mcp_client.client import MCPClient
-from hopeit_agents.mcp_client.models import BridgeConfig, Transport
+from hopeit_agents.mcp_client.models import MCPClientConfig, Transport
 
 
-def _bridge_config() -> BridgeConfig:
-    return BridgeConfig(
+def _client_config() -> MCPClientConfig:
+    return MCPClientConfig(
         transport=Transport.HTTP,
         host="127.0.0.1",
         port=8765,
@@ -49,7 +49,7 @@ class DummySession:
 
 @pytest.mark.asyncio
 async def test_list_tools_uses_cache(monkeypatch: pytest.MonkeyPatch) -> None:
-    client = MCPClient(config=_bridge_config())
+    client = MCPClient(config=_client_config())
 
     session_holder: list[Any] = []
 

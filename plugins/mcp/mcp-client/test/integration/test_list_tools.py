@@ -6,7 +6,7 @@ import pytest
 from hopeit.testing.apps import config, execute_event
 
 from hopeit_agents.mcp_client.api import list_tools as list_tools_module
-from hopeit_agents.mcp_client.models import BridgeConfig, ToolDescriptor
+from hopeit_agents.mcp_client.models import MCPClientConfig, ToolDescriptor
 
 
 @pytest.mark.asyncio
@@ -25,13 +25,13 @@ async def test_list_tools_returns_descriptors(monkeypatch: pytest.MonkeyPatch) -
     ]
 
     def fake_build_environment(
-        config_value: BridgeConfig, env_value: dict[str, str]
+        config_value: MCPClientConfig, env_value: dict[str, str]
     ) -> dict[str, str]:
         captured["build_env_args"] = (config_value, env_value)
         return {"ENV_FLAG": "test"}
 
     class FakeClient:
-        def __init__(self, *, config: BridgeConfig, env: dict[str, str]) -> None:
+        def __init__(self, *, config: MCPClientConfig, env: dict[str, str]) -> None:
             captured["client_config"] = config
             captured["client_env"] = env
 

@@ -5,7 +5,7 @@ from hopeit.testing.apps import config, execute_event
 
 from hopeit_agents.mcp_client.api import invoke_tool as invoke_tool_module
 from hopeit_agents.mcp_client.models import (
-    BridgeConfig,
+    MCPClientConfig,
     ToolExecutionResult,
     ToolExecutionStatus,
     ToolInvocation,
@@ -25,7 +25,7 @@ async def test_invoke_tool_returns_execution_result(monkeypatch: pytest.MonkeyPa
     )
 
     def fake_build_environment(
-        config_value: BridgeConfig, env_value: dict[str, str]
+        config_value: MCPClientConfig, env_value: dict[str, str]
     ) -> dict[str, str]:
         captured["build_env_args"] = (config_value, env_value)
         return {"ENV_FLAG": "invoke"}
@@ -34,7 +34,7 @@ async def test_invoke_tool_returns_execution_result(monkeypatch: pytest.MonkeyPa
         def __init__(
             self,
             *,
-            config: BridgeConfig,
+            config: MCPClientConfig,
             env: dict[str, str],
         ) -> None:
             captured["client_config"] = config
