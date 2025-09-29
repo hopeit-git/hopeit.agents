@@ -5,8 +5,9 @@ from __future__ import annotations
 import hashlib
 import json
 import re
+from collections.abc import Mapping
 from dataclasses import dataclass
-from typing import Any, Dict, Mapping
+from typing import Any
 
 _PLACEHOLDER_PATTERN = re.compile(r"\{([A-Za-z0-9_]+)\}")
 _PLACEHOLDER_NAME_PATTERN = re.compile(r"^[A-Za-z0-9_]+$")
@@ -29,7 +30,9 @@ class AgentConfig:
         return f"{self.name}:{self.version}"
 
 
-def create_agent_config(name: str, prompt_template: str, variables: Mapping[str, Any]) -> AgentConfig:
+def create_agent_config(
+    name: str, prompt_template: str, variables: Mapping[str, Any]
+) -> AgentConfig:
     """Create an :class:`AgentConfig` for the provided template and variables.
 
     Parameters
@@ -86,14 +89,14 @@ def compute_agent_config_version(prompt_template: str, variables: Mapping[str, s
     return f"acv-{digest[:12]}"
 
 
-def _normalize_variables(variables: Mapping[str, Any]) -> Dict[str, str]:
-    normalized: Dict[str, str] = {}
+def _normalize_variables(variables: Mapping[str, Any]) -> dict[str, str]:
+    normalized: dict[str, str] = {}
     for key, value in variables.items():
         if not isinstance(key, str):
             raise TypeError("Variable names must be strings.")
         if not _PLACEHOLDER_NAME_PATTERN.fullmatch(key):
             raise ValueError(
-                f"Invalid variable name '{key}'. Only alphanumeric characters and underscores are allowed."
+                f"Invalid variable name '{key}'. Only alphanumeric and underscores allowed."
             )
         normalized[key] = str(value)
     return normalized
@@ -112,5 +115,5 @@ def _render_prompt(prompt_template: str, variables: Mapping[str, str]) -> str:
     return rendered
 
 
-def _sorted_dict(variables: Mapping[str, str]) -> Dict[str, str]:
+def _sorted_dict(variables: Mapping[str, str]) -> dict[str, str]:
     return {key: variables[key] for key in sorted(variables)}

@@ -18,11 +18,15 @@ def test_create_agent_config_renders_prompt_and_sets_version() -> None:
         "tool": "analysis",
     }
 
-    config = create_agent_config(name="analysis-helper", prompt_template=template, variables=variables)
+    config = create_agent_config(
+        name="analysis-helper", prompt_template=template, variables=variables
+    )
 
     assert isinstance(config, AgentConfig)
     assert config.prompt == "Welcome Ada, today we will use the analysis toolkit."
-    assert config.version == compute_agent_config_version(template, {"tool": "analysis", "user": "Ada"})
+    assert config.version == compute_agent_config_version(
+        template, {"tool": "analysis", "user": "Ada"}
+    )
     assert config.qualified_name == f"{config.name}:{config.version}"
 
 

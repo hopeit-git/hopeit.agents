@@ -6,7 +6,7 @@ from typing import Any
 
 from hopeit.dataobjects import dataclass, dataobject, field
 
-from .models import CompletionConfig
+from hopeit_agents.model_client.models import CompletionConfig
 
 SETTINGS_KEY = "model_client"
 

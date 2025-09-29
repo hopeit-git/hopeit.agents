@@ -8,7 +8,7 @@ from typing import Any
 import aiohttp
 from aiohttp import ClientError, ClientResponse
 
-from .models import (
+from hopeit_agents.model_client.models import (
     CompletionConfig,
     CompletionRequest,
     CompletionResponse,

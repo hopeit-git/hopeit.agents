@@ -1,9 +1,9 @@
 """Public API for the hopeit_agents model client plugin."""
 
-from .api.generate import generate
-from .client import AsyncModelClient, ModelClientError
-from .conversation import build_conversation
-from .models import (
+from hopeit_agents.model_client.api.generate import generate
+from hopeit_agents.model_client.client import AsyncModelClient, ModelClientError
+from hopeit_agents.model_client.conversation import build_conversation
+from hopeit_agents.model_client.models import (
     CompletionConfig,
     CompletionRequest,
     CompletionResponse,
@@ -16,7 +16,7 @@ from .models import (
     ToolSpec,
     Usage,
 )
-from .settings import ModelClientSettings, merge_config
+from hopeit_agents.model_client.settings import ModelClientSettings, merge_config
 
 __all__ = [
     "AsyncModelClient",
