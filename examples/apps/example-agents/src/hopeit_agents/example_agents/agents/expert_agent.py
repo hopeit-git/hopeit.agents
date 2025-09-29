@@ -52,7 +52,7 @@ async def init_conversation(payload: ExpertAgentRequest, context: EventContext) 
     tool_prompt, tools = await bridge_resolve_tool_prompt(
         mcp_settings,
         context,
-        agent_id=payload.agent_id,
+        agent_id="latest",
         enable_tools=agent_settings.enable_tools,
         template=agent_settings.tool_prompt_template,
         include_schemas=agent_settings.include_tool_schemas_in_prompt,

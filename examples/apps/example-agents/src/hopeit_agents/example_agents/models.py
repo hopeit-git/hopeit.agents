@@ -18,7 +18,6 @@ logger, extra = app_extra_logger()
 class AgentRequest:
     """Incoming agent instruction."""
 
-    agent_id: str
     user_message: str
     metadata: dict[str, Any] = field(default_factory=dict)
 
@@ -28,7 +27,6 @@ class AgentRequest:
 class AgentResponse:
     """Agent execution output."""
 
-    agent_id: str
     conversation: Conversation
     assistant_message: Message
     tool_calls: list[ToolCallRecord] = field(default_factory=list)
@@ -39,7 +37,6 @@ class AgentResponse:
 class ExpertAgentRequest:
     """Incoming agent instruction."""
 
-    agent_id: str
     user_message: str
     metadata: dict[str, Any] = field(default_factory=dict)
 
