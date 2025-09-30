@@ -35,7 +35,7 @@ include-package-data = true
 where = ["src"]
 
 [tool.setuptools.dynamic]
-readme = { file = ["README.md"], content-type = "text/markdown" }
+readme = { file = ["../../../README.md"], content-type = "text/markdown" }
 
 [project.scripts]
 hopeit_mcp_server = "hopeit_agents.mcp_server.cli.server:server"
