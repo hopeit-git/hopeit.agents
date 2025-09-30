@@ -1,19 +1,19 @@
 """Agent prompt configuration utilities."""
 
-from __future__ import annotations
-
 import hashlib
 import json
 import re
 from collections.abc import Mapping
-from dataclasses import dataclass
 from typing import Any
 
-_PLACEHOLDER_PATTERN = re.compile(r"\{([A-Za-z0-9_]+)\}")
+from hopeit.dataobjects import dataclass, dataobject
+
+_PLACEHOLDER_PATTERN = re.compile(r"\{\{([A-Za-z0-9_]+)\}\}")
 _PLACEHOLDER_NAME_PATTERN = re.compile(r"^[A-Za-z0-9_]+$")
 
 
-@dataclass(frozen=True)
+@dataobject
+@dataclass
 class AgentConfig:
     """Immutable data structure holding an agent prompt configuration."""
 
@@ -21,72 +21,60 @@ class AgentConfig:
     version: str
     prompt_template: str
     variables: Mapping[str, str]
-    prompt: str
+    enable_tools: bool = False
+    tools: list[str] | None = None
+    tool_prompt_template: str | None = None
 
     @property
-    def qualified_name(self) -> str:
+    def key(self) -> str:
         """Return a version-qualified identifier for the agent configuration."""
 
         return f"{self.name}:{self.version}"
 
 
 def create_agent_config(
-    name: str, prompt_template: str, variables: Mapping[str, Any]
+    name: str,
+    prompt_template: str,
+    variables: Mapping[str, Any],
+    *,
+    enable_tools: bool = False,
+    tools: list[str] | None = None,
+    tool_prompt_template: str | None = None,
 ) -> AgentConfig:
-    """Create an :class:`AgentConfig` for the provided template and variables.
-
-    Parameters
-    ----------
-    name:
-        Free-form identifier for the agent configuration.
-    prompt_template:
-        Prompt template text containing placeholders wrapped in ``{}``.
-    variables:
-        Mapping containing the values to interpolate in the template.
-
-    Returns
-    -------
-    AgentConfig
-        Frozen configuration containing the rendered prompt and version.
-
-    Raises
-    ------
-    TypeError
-        If a variable name is not a string.
-    ValueError
-        If a variable name is invalid or a placeholder is missing.
-    """
+    """Create an :class:`AgentConfig` for the provided template and variables."""
 
     normalized_variables = _normalize_variables(variables)
-    expected_placeholders = set(_PLACEHOLDER_PATTERN.findall(prompt_template))
-
-    missing_placeholders = expected_placeholders - normalized_variables.keys()
-    if missing_placeholders:
-        missing = ", ".join(sorted(missing_placeholders))
-        raise ValueError(f"Missing values for placeholders: {missing}")
-
-    rendered_prompt = _render_prompt(prompt_template, normalized_variables)
-    version = compute_agent_config_version(prompt_template, normalized_variables)
+    version = _compute_agent_config_version(prompt_template, normalized_variables)
 
     return AgentConfig(
         name=name,
         version=version,
         prompt_template=prompt_template,
         variables=normalized_variables,
-        prompt=rendered_prompt,
+        enable_tools=enable_tools,
+        tools=tools,
+        tool_prompt_template=tool_prompt_template,
     )
 
 
-def compute_agent_config_version(prompt_template: str, variables: Mapping[str, str]) -> str:
+def _compute_agent_config_version(
+    prompt_template: str,
+    variables: dict[str, str],
+    *,
+    tools: list[str] | None = None,
+    tool_prompt_template: str | None = None,
+) -> str:
     """Compute a deterministic version identifier for an agent configuration."""
 
     canonical_payload = {
         "prompt_template": prompt_template,
         "variables": _sorted_dict(variables),
+        "tools": sorted(tools or []),
+        "tool_prompt_template": tool_prompt_template or "",
     }
     canonical_json = json.dumps(canonical_payload, separators=(",", ":"), ensure_ascii=True)
     digest = hashlib.sha256(canonical_json.encode("utf-8")).hexdigest()
-    return f"acv-{digest[:12]}"
+    return f"{digest[:12]}"
 
 
 def _normalize_variables(variables: Mapping[str, Any]) -> dict[str, str]:
@@ -102,10 +90,17 @@ def _normalize_variables(variables: Mapping[str, Any]) -> dict[str, str]:
     return normalized
 
 
-def _render_prompt(prompt_template: str, variables: Mapping[str, str]) -> str:
-    rendered = prompt_template
-    for key, value in variables.items():
-        rendered = rendered.replace(f"{{{key}}}", value)
+def render_prompt(
+    agent_config: AgentConfig, extra_variables: dict[str, str], *, include_tools: bool = False
+) -> str:
+    rendered = agent_config.prompt_template
+    if include_tools:
+        if agent_config.tool_prompt_template is None:
+            raise ValueError("Missing tool_prompt_template")
+        rendered += "\n" + agent_config.tool_prompt_template
+    all_variables = {**agent_config.variables, **extra_variables}
+    for key, value in all_variables.items():
+        rendered = rendered.replace("{{" + key + "}}", value)
 
     unresolved = set(_PLACEHOLDER_PATTERN.findall(rendered))
     if unresolved:

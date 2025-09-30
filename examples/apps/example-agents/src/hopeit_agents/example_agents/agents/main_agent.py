@@ -4,13 +4,17 @@ from hopeit.app.api import event_api
 from hopeit.app.context import EventContext
 from hopeit.app.logger import app_extra_logger
 
+from hopeit_agents.agent_toolkit.agents.prompts import create_agent_config, render_prompt
 from hopeit_agents.agent_toolkit.app.steps.agent_loop import (
     AgentLoopConfig,
     AgentLoopPayload,
     AgentLoopResult,
     agent_with_tools_loop,
 )
-from hopeit_agents.agent_toolkit.mcp.agent_tools import resolve_tool_prompt
+from hopeit_agents.agent_toolkit.mcp.agent_tools import (
+    resolve_tools,
+    tool_descriptions,
+)
 from hopeit_agents.agent_toolkit.settings import AgentSettings
 from hopeit_agents.example_agents.models import AgentRequest, AgentResponse
 from hopeit_agents.mcp_client.models import MCPClientConfig
@@ -32,22 +36,46 @@ __api__ = event_api(
 
 async def init_conversation(payload: AgentRequest, context: EventContext) -> AgentLoopPayload:
     """Build the initial conversation and tool prompt for the main agent."""
-    agent_settings = context.settings(key="main_agent_llm", datatype=AgentSettings)
-    mcp_settings = context.settings(key="sub_agents_mcp_client", datatype=MCPClientConfig)
-    tool_prompt, tools = await resolve_tool_prompt(
+    agent_settings: AgentSettings = context.settings(key="main_agent_llm", datatype=AgentSettings)
+    mcp_settings: MCPClientConfig = context.settings(
+        key="sub_agents_mcp_client", datatype=MCPClientConfig
+    )
+
+    assert agent_settings.system_prompt_template, "missing system_prompt_template"
+    assert agent_settings.tool_prompt_template, "missing tool_prompt_template"
+
+    with open(agent_settings.system_prompt_template) as f:
+        system_prompt_template = f.read()
+    with open(agent_settings.tool_prompt_template) as f:
+        tool_prompt_template = f.read()
+
+    agent_config = create_agent_config(
+        name=agent_settings.agent_name,
+        prompt_template=system_prompt_template,
+        variables={},
+        enable_tools=True,
+        tools=agent_settings.allowed_tools,
+        tool_prompt_template=tool_prompt_template,
+    )
+    tools = await resolve_tools(
         mcp_settings,
         context,
-        agent_id="latest",
-        enable_tools=agent_settings.enable_tools,
-        template=agent_settings.tool_prompt_template,
-        include_schemas=agent_settings.include_tool_schemas_in_prompt,
+        agent_id=agent_config.key,
+        allowed_tools=agent_config.tools,
     )
     completion_config = CompletionConfig(available_tools=tools)
     conversation = build_conversation(
         None,
         user_message=payload.user_message,
-        system_prompt=agent_settings.system_prompt,
-        tool_prompt=tool_prompt,
+        system_prompt=render_prompt(
+            agent_config,
+            {
+                "tool_descriptions": tool_descriptions(
+                    tools, include_schemas=agent_settings.include_tool_schemas_in_prompt
+                )
+            },
+            include_tools=agent_config.enable_tools,
+        ),
     )
     return AgentLoopPayload(
         conversation=conversation,

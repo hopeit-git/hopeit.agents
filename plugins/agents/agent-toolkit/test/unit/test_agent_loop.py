@@ -86,7 +86,9 @@ async def test_agent_loop_executes_tool_calls(monkeypatch: MonkeyPatch) -> None:
         conversation=initial_conversation,
         completion_config=CompletionConfig(model="test-model"),
         loop_config=AgentLoopConfig(max_iterations=1),
-        agent_settings=AgentSettings(enable_tools=True),
+        agent_settings=AgentSettings(
+            agent_name="test-agent", system_prompt_template="test-template.md", enable_tools=True
+        ),
         mcp_settings=MCPClientConfig(command="demo"),
     )
 
@@ -146,7 +148,9 @@ async def test_agent_loop_returns_assistant_message(monkeypatch: MonkeyPatch) ->
         conversation=initial_conversation,
         completion_config=CompletionConfig(),
         loop_config=AgentLoopConfig(max_iterations=2),
-        agent_settings=AgentSettings(enable_tools=True),
+        agent_settings=AgentSettings(
+            agent_name="test-agent", system_prompt_template="test-template.md", enable_tools=True
+        ),
         mcp_settings=MCPClientConfig(),
     )
 

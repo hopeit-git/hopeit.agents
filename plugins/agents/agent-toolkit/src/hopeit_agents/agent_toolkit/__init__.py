@@ -1,6 +1,6 @@
 """Top-level exports for the agent toolkit plugin."""
 
-from .agents import AgentConfig, compute_agent_config_version, create_agent_config
+from .agents import AgentConfig, create_agent_config, render_prompt
 from .app import (
     AgentLoopConfig,
     AgentLoopPayload,
@@ -9,11 +9,9 @@ from .app import (
     agent_with_tools_loop,
 )
 from .mcp import (
-    build_tool_prompt,
     call_tool,
     execute_tool_calls,
-    format_tool_descriptions,
-    resolve_tool_prompt,
+    tool_descriptions,
 )
 
 __all__ = [
@@ -25,9 +23,8 @@ __all__ = [
     "agent_with_tools_loop",
     "build_tool_prompt",
     "call_tool",
-    "compute_agent_config_version",
+    "render_prompt",
     "create_agent_config",
     "execute_tool_calls",
-    "format_tool_descriptions",
-    "resolve_tool_prompt",
+    "tool_descriptions",
 ]

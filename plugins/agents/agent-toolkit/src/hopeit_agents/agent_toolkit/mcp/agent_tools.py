@@ -23,78 +23,45 @@ from hopeit_agents.mcp_client.settings import build_environment
 logger, extra = app_extra_logger()
 
 __all__ = [
-    "resolve_tool_prompt",
-    "build_tool_prompt",
-    "format_tool_descriptions",
+    "resolve_tools",
+    "tool_descriptions",
     "call_tool",
     "execute_tool_calls",
 ]
 
 
-async def resolve_tool_prompt(
+async def resolve_tools(
     config: MCPClientConfig,
     context: EventContext,
     *,
     agent_id: str,
-    enable_tools: bool,
-    template: str | None,
-    include_schemas: bool,
-) -> tuple[str | None, list[ToolDescriptor]]:
+    allowed_tools: list[str] | None = None,
+) -> list[ToolDescriptor]:
     """Return a tool-aware prompt based on the MCP tool inventory."""
-    if not enable_tools or not template:
-        return None, []
-
     env = build_environment(config, context.env)
     client = MCPClient(config=config, env=env)
     try:
         tools = await client.list_tools()
+        if allowed_tools:
+            return [tool for tool in tools if tool.name in allowed_tools]
+        return tools
     except MCPClientError as exc:
         logger.warning(
             context,
             "agent_tool_prompt_list_failed",
             extra=extra(agent_id=agent_id, error=str(exc), details=exc.details),
         )
-        return None, []
+        return []
     except Exception as exc:  # pragma: no cover - defensive guardrail
         logger.error(
             context,
             "agent_tool_prompt_unexpected_error",
             extra=extra(agent_id=agent_id, error=repr(exc)),
         )
-        return None, []
-
-    return build_tool_prompt(
-        tools,
-        template=template,
-        include_schemas=include_schemas,
-    ), tools
+        return []
 
 
-def build_tool_prompt(
-    tools: list[ToolDescriptor],
-    *,
-    template: str | None,
-    include_schemas: bool,
-) -> str | None:
-    """Compose a structured system prompt detailing available tools."""
-    if not tools or not template:
-        return None
-
-    tool_descriptions = format_tool_descriptions(
-        tools,
-        include_schemas=include_schemas,
-    )
-    if not tool_descriptions:
-        return None
-
-    try:
-        prompt = template.format(tool_descriptions=tool_descriptions)
-    except (IndexError, KeyError, ValueError):
-        prompt = f"{template}\n{tool_descriptions}"
-    return prompt.strip()
-
-
-def format_tool_descriptions(
+def tool_descriptions(
     tools: list[ToolDescriptor],
     *,
     include_schemas: bool,

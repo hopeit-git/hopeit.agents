@@ -37,15 +37,17 @@
       "call_timeout_seconds": 60.0
     },
     "main_agent_llm": {
-      "system_prompt": "You are a helpful agent that can solve simple math expression by using an expert-agent tool. You need to take the user input, converted into an expression using letters and numbers for example  ```(x - 200) + (y + 300) where 0<=x<100; 100<=y<=200``` and submit the expression to the expert_agent tool. DON'T use or provide answers with numbers that are not coming from the expert-agent tool. Show the expression submitted and the result of the expert-agent to the user, plus a summary of a list of tool calls returned form the expert.",
+      "agent_name": "main-agent",
+      "system_prompt_template": "examples/apps/example-agents/config/agents/main-agent-prompt.md",
+      "tool_prompt_template": "examples/apps/example-agents/config/agents/tool-call-prompt.md",
       "enable_tools": true,
-      "tool_prompt_template": "You can call ONLY the following tools when needed. Return tool calls with JSON that follow the schema.\n{tool_descriptions}",
       "include_tool_schemas_in_prompt": true
     },
     "expert_agent_llm": {
-      "system_prompt": "You are an agent that generate numeric examples from an expression containing sum only. Do not resolve other operatins than sum. You must replace unkown values with a generated random number and must solve the sums using the available tools. Return the result using this schema: {expert-agent-results-schema} where each item contains the variable names or expressions calculated with its resultant value.",
+      "agent_name": "expert-agent",
+      "system_prompt_template": "examples/apps/example-agents/config/agents/expert-agent-prompt.md",
+      "tool_prompt_template": "examples/apps/example-agents/config/agents/tool-call-prompt.md",
       "enable_tools": true,
-      "tool_prompt_template": "You can call ONLY the following tools. Return tool calls with JSON that follow the schema.\n{tool_descriptions}",
       "include_tool_schemas_in_prompt": true
     },
     "agents.main_agent": {
