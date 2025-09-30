@@ -1,6 +1,6 @@
 .PHONY: env clean-env deps format lint test dist-plugin clean-dist-plugin publish-plugin-pypi publish-plugin-pypi-test check-plugin-folder
 
-PYTHON ?= 3.12
+PYTHONVERSION ?= 3.12
 
 UV = UV_CACHE_DIR=.uv-cache uv
 UV_RUN = $(UV) run --no-sync
@@ -22,7 +22,7 @@ MYPY_TARGETS = \
 	examples/plugins/example-tool:hopeit_agents.example_tool
 
 env:
-	$(UV) venv --seed --python $(PYTHON)
+	$(UV) venv --seed --python $(PYTHONVERSION)
 	$(UV) sync --all-packages
 
 clean-env:
@@ -57,7 +57,7 @@ test:
 	done
 
 ci:
-	$(UV) sync --all-packages
+	$(UV) sync --all-packages --python $(PYTHONVERSION)
 	make lint
 	make test
 
