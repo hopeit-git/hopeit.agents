@@ -1,11 +1,14 @@
 """Additional unit tests for agent configuration helpers."""
 
+from collections.abc import Mapping
+from typing import Any, cast
+
 import pytest
 
 from hopeit_agents.agent_toolkit.agents.agent_config import (
     AgentConfig,
-    create_agent_config,
     _compute_agent_config_version,
+    create_agent_config,
 )
 
 
@@ -41,7 +44,7 @@ def test_create_agent_config_rejects_invalid_variable_names() -> None:
         _ = create_agent_config(
             name="invalid",
             prompt_template="Hi",
-            variables={1: "value"},
+            variables=cast(Mapping[str, Any], {1: "value"}),
         )
 
     with pytest.raises(ValueError):
@@ -61,9 +64,7 @@ def test_compute_agent_config_version_includes_tool_configuration() -> None:
     base = _compute_agent_config_version(template, variables)
     with_tools = _compute_agent_config_version(template, variables, tools=["summarize"])
     with_prompt = _compute_agent_config_version(
-        template,
-        variables,
-        tool_prompt_template="Invoke {{tool}}"
+        template, variables, tool_prompt_template="Invoke {{tool}}"
     )
 
     assert base != with_tools

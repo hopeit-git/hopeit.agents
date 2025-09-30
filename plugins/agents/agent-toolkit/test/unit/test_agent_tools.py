@@ -1,20 +1,27 @@
 """Unit tests for MCP agent tool helpers."""
 
+import uuid
 from types import SimpleNamespace
-from typing import Any
+from typing import Any, cast
 
 import pytest
+from hopeit.app.context import EventContext
 
 from hopeit_agents.agent_toolkit.mcp import agent_tools
 from hopeit_agents.mcp_client.client import MCPClientError
 from hopeit_agents.mcp_client.models import (
     MCPClientConfig,
     ToolCallRecord,
+    ToolDescriptor,
     ToolExecutionResult,
     ToolExecutionStatus,
     ToolInvocation,
-    ToolDescriptor,
 )
+
+
+def _stub_context(env: dict[str, Any] | None = None) -> tuple[EventContext, SimpleNamespace]:
+    namespace = SimpleNamespace(env=env or {})
+    return cast(EventContext, namespace), namespace
 
 
 @pytest.mark.asyncio
@@ -22,12 +29,18 @@ async def test_resolve_tools_returns_inventory(monkeypatch: pytest.MonkeyPatch) 
     """resolve_tools should call the MCP client and return available tools."""
 
     tools = [
-        ToolDescriptor(name="alpha", title=None, description="First", input_schema={}, output_schema=None),
-        ToolDescriptor(name="beta", title=None, description="Second", input_schema={}, output_schema=None),
+        ToolDescriptor(
+            name="alpha", title=None, description="First", input_schema={}, output_schema=None
+        ),
+        ToolDescriptor(
+            name="beta", title=None, description="Second", input_schema={}, output_schema=None
+        ),
     ]
     captured: dict[str, Any] = {}
 
-    def fake_build_environment(config: MCPClientConfig, context_env: dict[str, Any]) -> dict[str, str]:
+    def fake_build_environment(
+        config: MCPClientConfig, context_env: dict[str, Any]
+    ) -> dict[str, str]:
         captured["config"] = config
         captured["context_env"] = context_env
         return {"TOKEN": "secret"}
@@ -43,7 +56,7 @@ async def test_resolve_tools_returns_inventory(monkeypatch: pytest.MonkeyPatch) 
     monkeypatch.setattr(agent_tools, "build_environment", fake_build_environment)
     monkeypatch.setattr(agent_tools, "MCPClient", DummyClient)
 
-    context = SimpleNamespace(env={"TOKEN": "from-context"})
+    context, raw_context = _stub_context({"TOKEN": "from-context"})
     config = MCPClientConfig(command="demo")
 
     result = await agent_tools.resolve_tools(
@@ -53,7 +66,7 @@ async def test_resolve_tools_returns_inventory(monkeypatch: pytest.MonkeyPatch) 
     )
 
     assert result == tools
-    assert captured["context_env"] == context.env
+    assert captured["context_env"] == raw_context.env
     assert captured["client_env"] == {"TOKEN": "secret"}
     assert captured["list_tools_called"] is True
 
@@ -63,12 +76,18 @@ async def test_resolve_tools_filters_allowed(monkeypatch: pytest.MonkeyPatch) ->
     """Allowed tools filter should limit the returned inventory."""
 
     tools = [
-        ToolDescriptor(name="alpha", title=None, description="First", input_schema={}, output_schema=None),
-        ToolDescriptor(name="beta", title=None, description="Second", input_schema={}, output_schema=None),
+        ToolDescriptor(
+            name="alpha", title=None, description="First", input_schema={}, output_schema=None
+        ),
+        ToolDescriptor(
+            name="beta", title=None, description="Second", input_schema={}, output_schema=None
+        ),
     ]
 
     class DummyClient:
-        def __init__(self, config: MCPClientConfig, env: dict[str, str]) -> None:  # pragma: no cover
+        def __init__(
+            self, config: MCPClientConfig, env: dict[str, str]
+        ) -> None:  # pragma: no cover
             self._env = env
 
         async def list_tools(self) -> list[ToolDescriptor]:
@@ -77,7 +96,7 @@ async def test_resolve_tools_filters_allowed(monkeypatch: pytest.MonkeyPatch) ->
     monkeypatch.setattr(agent_tools, "build_environment", lambda config, ctx_env: ctx_env)
     monkeypatch.setattr(agent_tools, "MCPClient", DummyClient)
 
-    context = SimpleNamespace(env={})
+    context, _ = _stub_context({})
     config = MCPClientConfig()
 
     result = await agent_tools.resolve_tools(
@@ -110,7 +129,7 @@ async def test_resolve_tools_handles_errors(monkeypatch: pytest.MonkeyPatch) -> 
     monkeypatch.setattr(agent_tools, "MCPClient", FailingClient)
     monkeypatch.setattr(agent_tools, "logger", stub_logger)
 
-    context = SimpleNamespace(env={})
+    context, _ = _stub_context({})
     config = MCPClientConfig()
 
     result = await agent_tools.resolve_tools(
@@ -137,7 +156,7 @@ def test_tool_descriptions_renders_schemas() -> None:
 
     assert rendered.startswith("Available tools:\n- alpha: Example tool")
     assert "JSON schema:" in rendered
-    assert "\n    {\n      \"properties\": {" in rendered
+    assert '\n    {\n      "properties": {' in rendered
 
     rendered_no_schema = agent_tools.tool_descriptions([tool], include_schemas=False)
 
@@ -156,7 +175,9 @@ async def test_call_tool_invokes_client(monkeypatch: pytest.MonkeyPatch) -> None
     )
     captured: dict[str, Any] = {}
 
-    def fake_build_environment(config: MCPClientConfig, context_env: dict[str, Any]) -> dict[str, str]:
+    def fake_build_environment(
+        config: MCPClientConfig, context_env: dict[str, Any]
+    ) -> dict[str, str]:
         captured["context_env"] = context_env
         return {"TOKEN": "secret"}
 
@@ -183,7 +204,7 @@ async def test_call_tool_invokes_client(monkeypatch: pytest.MonkeyPatch) -> None
     monkeypatch.setattr(agent_tools, "build_environment", fake_build_environment)
     monkeypatch.setattr(agent_tools, "MCPClient", DummyClient)
 
-    context = SimpleNamespace(env={"TOKEN": "from-context"})
+    context, raw_context = _stub_context({"TOKEN": "from-context"})
     config = MCPClientConfig(command="demo")
 
     result = await agent_tools.call_tool(
@@ -197,7 +218,7 @@ async def test_call_tool_invokes_client(monkeypatch: pytest.MonkeyPatch) -> None
 
     assert result is expected_result
     assert captured["client_env"] == {"TOKEN": "secret"}
-    assert captured["context_env"] == context.env
+    assert captured["context_env"] == raw_context.env
     assert captured["call_args"] == {
         "tool_name": "alpha",
         "payload": {"foo": "bar"},
@@ -233,7 +254,7 @@ async def test_call_tool_propagates_client_errors(monkeypatch: pytest.MonkeyPatc
     monkeypatch.setattr(agent_tools, "MCPClient", FailingClient)
     monkeypatch.setattr(agent_tools, "logger", stub_logger)
 
-    context = SimpleNamespace(env={})
+    context, _ = _stub_context({})
     config = MCPClientConfig()
 
     with pytest.raises(MCPClientError):
@@ -254,7 +275,7 @@ async def test_execute_tool_calls_invokes_each_call(monkeypatch: pytest.MonkeyPa
 
     async def fake_call_tool(
         config: MCPClientConfig,
-        context: SimpleNamespace,
+        context: EventContext,
         *,
         call_id: str,
         tool_name: str,
@@ -277,14 +298,15 @@ async def test_execute_tool_calls_invokes_each_call(monkeypatch: pytest.MonkeyPa
 
     monkeypatch.setattr(agent_tools, "call_tool", fake_call_tool)
 
-    uuid_values = iter([
-        agent_tools.uuid.UUID(int=1),
-        agent_tools.uuid.UUID(int=2),
-    ])
-    monkeypatch.setattr(agent_tools.uuid, "uuid4", lambda: next(uuid_values))
+    uuid_values = iter([uuid.UUID(int=1), uuid.UUID(int=2)])
+    monkeypatch.setattr(
+        agent_tools,
+        "uuid",
+        SimpleNamespace(uuid4=lambda: next(uuid_values)),
+    )
 
     config = MCPClientConfig()
-    context = SimpleNamespace(env={})
+    context, _ = _stub_context({})
     tool_calls = [
         ToolInvocation(tool_name="alpha", payload={"foo": "bar"}, call_id="explicit"),
         ToolInvocation(tool_name="beta", payload={"baz": "qux"}),
