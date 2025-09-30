@@ -68,6 +68,7 @@ def tool_descriptions(
 ) -> str:
     """Render tool metadata as bullet points for LLM consumption."""
     lines: list[str] = []
+    lines.append("\nAvailable tools:")
     for tool in tools:
         description = (tool.description or "No description provided.").strip()
         lines.append(f"- {tool.name}: {description}")

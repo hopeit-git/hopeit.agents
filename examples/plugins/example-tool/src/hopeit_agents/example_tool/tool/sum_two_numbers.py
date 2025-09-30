@@ -11,6 +11,7 @@ __steps__ = ["sum_two_numbers"]
 
 __mcp__ = event_tool_api(
     summary="hopeit_agents example tool: sum two numbers",
+    description="Tool to sum two integers",
     payload=(SumTwoNumberRequest, "Sum two numbers request"),
     response=(SumTwoNumberResponse, "Sum two numbers response"),
 )

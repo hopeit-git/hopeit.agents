@@ -4,7 +4,8 @@ from hopeit.app.api import event_api
 from hopeit.app.context import EventContext
 from hopeit.app.logger import app_extra_logger
 
-from hopeit_agents.agent_toolkit.agents.prompts import create_agent_config, render_prompt
+from hopeit_agents.agent_toolkit.agents.agent_config import create_agent_config
+from hopeit_agents.agent_toolkit.agents.prompts import render_prompt
 from hopeit_agents.agent_toolkit.app.steps.agent_loop import (
     AgentLoopConfig,
     AgentLoopPayload,

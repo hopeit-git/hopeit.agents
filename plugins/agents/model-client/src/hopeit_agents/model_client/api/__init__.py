@@ -1,1 +1,1 @@
-"""Public API exports for the `hopeit_agents.model_client` package."""
+"""hopeit endpoints for the `hopeit_agents.model_client` plugin."""

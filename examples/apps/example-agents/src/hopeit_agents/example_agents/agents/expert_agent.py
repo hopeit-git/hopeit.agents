@@ -1,11 +1,14 @@
-"""Expert agent event that orchestrates a tool-enabled conversation."""
+"""Agent that can receive expressions with numbers and variables, creates random numbers
+for the variables and solve sums
+"""
 
 from hopeit.app.api import event_api
 from hopeit.app.context import EventContext
 from hopeit.app.logger import app_extra_logger
 from hopeit.dataobjects.payload import Payload
 
-from hopeit_agents.agent_toolkit.agents.prompts import create_agent_config, render_prompt
+from hopeit_agents.agent_toolkit.agents.agent_config import create_agent_config
+from hopeit_agents.agent_toolkit.agents.prompts import render_prompt
 from hopeit_agents.agent_toolkit.app.steps.agent_loop import (
     AgentLoopConfig,
     AgentLoopPayload,
@@ -35,13 +38,12 @@ logger, extra = app_extra_logger()
 __steps__ = ["init_conversation", agent_with_tools_loop.__name__, "result"]
 
 __api__ = event_api(
-    summary="example-agents: expert agent",
+    summary="example-agents: expert agent that can generate random number an solve sums",
     payload=(ExpertAgentRequest, "Agent task request"),
     responses={200: (ExpertAgentResponse, "Aggregated agent response")},
 )
 
 __mcp__ = event_tool_api(
-    summary="example-agents: expert agent",
     payload=(ExpertAgentRequest, "Agent task description"),
     response=(ExpertAgentResponse, "Aggregated agent response"),
 )

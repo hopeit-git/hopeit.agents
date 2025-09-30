@@ -124,8 +124,8 @@ def _method_description(
     if description is not None:
         return description
     doc_str = inspect.getdoc(module)
-    if doc_str is not None and doc_str.count("\n") > 1:
-        return re.sub(r"^\W+", "", doc_str.split("\n", 1)[1])
+    if doc_str:
+        return re.sub(r"^\W+", "", doc_str)
     return _method_summary(module, summary)
 
 
@@ -170,7 +170,7 @@ def extract_app_tool_specs(
                 tool=types.Tool(
                     name=tool_name,
                     title=event_spec["responses"]["200"].get("summary"),
-                    description=event_spec["responses"]["200"]["description"],
+                    description=event_spec["description"],
                     inputSchema=event_spec["requestBody"]["content"]["application/json"]["schema"],
                     outputSchema=event_spec["responses"]["200"]["content"]["application/json"][
                         "schema"

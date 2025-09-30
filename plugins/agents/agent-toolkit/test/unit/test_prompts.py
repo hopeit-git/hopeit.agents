@@ -2,11 +2,8 @@
 
 import pytest
 
-from hopeit_agents.agent_toolkit.agents.prompts import (
-    AgentConfig,
-    create_agent_config,
-    render_prompt,
-)
+from hopeit_agents.agent_toolkit.agents.agent_config import AgentConfig, create_agent_config
+from hopeit_agents.agent_toolkit.agents.prompts import render_prompt
 
 
 def test_create_agent_config_renders_prompt_and_sets_version() -> None:
@@ -27,8 +24,8 @@ def test_create_agent_config_renders_prompt_and_sets_version() -> None:
     # version computed using _compute_agent_config_version(
     #    template, {"tool": "analysis", "user": "Ada"}
     # )"
-    assert config.version == "56e6380b598c"
-    assert config.key == "analysis-helper:56e6380b598c"
+    assert config.version == "901694b68a41"
+    assert config.key == "analysis-helper:901694b68a41"
     assert config.prompt_template == template
     assert config.variables == variables
 

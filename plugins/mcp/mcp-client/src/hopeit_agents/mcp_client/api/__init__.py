@@ -1,1 +1,1 @@
-"""Expose the public MCP client API surface."""
+"""Expose the public MCP client as hopeit endpoints surface."""

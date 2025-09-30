@@ -13,6 +13,7 @@ __steps__ = ["generate_random"]
 
 __mcp__ = event_tool_api(
     summary="hopeit_agents example tool: generate random number",
+    description="Tool to generate a random integer withing a given range",
     payload=(RandomNumberRequest, "Random number request"),
     response=(RandomNumberResponse, "Random number response"),
 )

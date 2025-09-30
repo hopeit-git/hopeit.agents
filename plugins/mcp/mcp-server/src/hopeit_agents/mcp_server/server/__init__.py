@@ -1,3 +1,3 @@
 """
-hopeit-agents-mcp-server CLI (Command Line Interface) module
+hopeit-agents-mcp-server server module
 """
