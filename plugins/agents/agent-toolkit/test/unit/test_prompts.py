@@ -62,3 +62,34 @@ def test_compute_agent_config_version_reflects_variable_changes() -> None:
     version_two = create_agent_config(name, template, {"user": "two"})
 
     assert version_one.version != version_two.version
+
+
+def test_render_prompt_with_tools_appends_tool_section() -> None:
+    """When include_tools is true the tool prompt template is appended and rendered."""
+
+    config = create_agent_config(
+        name="tool-agent",
+        prompt_template="Instructions for {{agent}}.",
+        variables={"agent": "Ada"},
+        enable_tools=True,
+        tools=["summarize"],
+        tool_prompt_template="Tools:\n- {{tool_name}}",
+    )
+
+    prompt = render_prompt(config, {"tool_name": "summarize"}, include_tools=True)
+
+    assert prompt == "Instructions for Ada.\nTools:\n- summarize"
+
+
+def test_render_prompt_with_tools_requires_tool_template() -> None:
+    """Including tools without a tool prompt template raises an error."""
+
+    config = create_agent_config(
+        name="tool-agent",
+        prompt_template="Hello {{agent}}",
+        variables={"agent": "Ada"},
+        enable_tools=True,
+    )
+
+    with pytest.raises(ValueError):
+        render_prompt(config, {}, include_tools=True)
