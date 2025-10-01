@@ -6,17 +6,7 @@ FROM ghcr.io/astral-sh/uv:latest AS uv
 
 ##########################################
 # 2. Base operating system with non-root user
-FROM python:3.12-slim AS base
-
-ARG DEBIAN_FRONTEND=noninteractive
-
-ENV PYTHONDONTWRITEBYTECODE=1 \
-    PYTHONUNBUFFERED=1 \
-    MCP_RANDOM_SEED=1234
-
-RUN apt-get update \
-    && apt-get install -y --no-install-recommends ca-certificates \
-    && rm -rf /var/lib/apt/lists/*
+FROM ubuntu:latest AS base
 
 RUN useradd --create-home --shell /bin/bash appuser
 
@@ -30,12 +20,8 @@ FROM base AS builder
 COPY --from=uv /uv /usr/local/bin/uv
 RUN chmod +x /usr/local/bin/uv
 
-RUN apt-get update \
-    && apt-get install -y --no-install-recommends build-essential git \
-    && rm -rf /var/lib/apt/lists/*
-
-ENV VIRTUAL_ENV=/opt/venv \
-    UV_PROJECT_ENVIRONMENT=${VIRTUAL_ENV}
+ENV VIRTUAL_ENV=/opt/venv
+ENV UV_PROJECT_ENVIRONMENT=${VIRTUAL_ENV}
 
 RUN uv venv --python 3.12 "${VIRTUAL_ENV}"
 
@@ -54,10 +40,9 @@ RUN test -x ${VIRTUAL_ENV}/bin/hopeit_mcp_server
 # 4. Runner: slim runtime + prebuilt venv
 FROM base AS runner
 
-ENV VIRTUAL_ENV=/opt/venv \
-    UV_PROJECT_ENVIRONMENT=${VIRTUAL_ENV} \
-    MCP_SERVER_PORT=8765
+ENV VIRTUAL_ENV=/opt/venv
 
+COPY --from=builder --chown=root:appuser --chmod=050 /home/appuser/.local/share/uv/python/ /home/appuser/.local/share/uv/python/
 COPY --from=builder --chown=appuser:appuser ${VIRTUAL_ENV} ${VIRTUAL_ENV}
 COPY --from=builder --chown=appuser:appuser /app /app
 
@@ -65,7 +50,5 @@ USER appuser
 WORKDIR /app
 ENV PATH="${VIRTUAL_ENV}/bin:${PATH}"
 
-EXPOSE ${MCP_SERVER_PORT}
-
 ENTRYPOINT ["./docker/entrypoint.sh"]
-CMD ["run", "--transport", "stdio", "--host", "0.0.0.0", "--port", "8765", "--config-files", "plugins/mcp/mcp-server/config/dev-noauth-docker.json,plugins/mcp/mcp-server/config/plugin-config.json,examples/plugins/example-tool/config/plugin-config.json"]
+CMD ["run", "--transport", "stdio", "--config-files", "plugins/mcp/mcp-server/config/dev-noauth-docker.json,plugins/mcp/mcp-server/config/plugin-config.json,examples/plugins/example-tool/config/plugin-config.json"]

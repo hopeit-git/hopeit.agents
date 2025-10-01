@@ -3,11 +3,8 @@ services:
     image: hopeit-agents-mcp-server
     build:    
       dockerfile: docker/Dockerfile
-    ports:
-      - "8765:8765"
     environment:
       MCP_RANDOM_SEED: "1234"
-    restart: unless-stopped
 
 networks:
   default:
