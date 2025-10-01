@@ -39,11 +39,7 @@ async def _wait_for_server_start(server: uvicorn.Server, timeout: float = 10.0) 
 
 def _server_port(server: uvicorn.Server) -> int:
     """Return the bound TCP port for the given uvicorn server instance."""
-    sockets = [
-        sock
-        for http_server in server.servers or []
-        for sock in (http_server.sockets or [])
-    ]
+    sockets = [sock for http_server in server.servers or [] for sock in (http_server.sockets or [])]
     if not sockets:
         raise RuntimeError("MCP server sockets not bound.")
     return int(sockets[0].getsockname()[1])
@@ -155,7 +151,6 @@ async def test_mcp_server_returns_method_not_found_for_unknown_tool(
 
             assert result.isError is True
             assert any(
-                isinstance(block, types.TextContent)
-                and "Invalid tool name" in block.text
+                isinstance(block, types.TextContent) and "Invalid tool name" in block.text
                 for block in result.content
             )
