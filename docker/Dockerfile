@@ -50,5 +50,5 @@ USER appuser
 WORKDIR /app
 ENV PATH="${VIRTUAL_ENV}/bin:${PATH}"
 
-ENTRYPOINT ["./docker/entrypoint.sh"]
-CMD ["run", "--transport", "stdio", "--config-files", "plugins/mcp/mcp-server/config/dev-noauth-docker.json,plugins/mcp/mcp-server/config/plugin-config.json,examples/plugins/example-tool/config/plugin-config.json"]
+ENTRYPOINT ["hopeit_mcp_server", "run"]
+CMD ["--transport", "stdio", "--config-files", "plugins/mcp/mcp-server/config/dev-noauth-docker.json,plugins/mcp/mcp-server/config/plugin-config.json,examples/plugins/example-tool/config/plugin-config.json"]

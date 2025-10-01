@@ -27,6 +27,7 @@ __all__ = [
     "tool_descriptions",
     "call_tool",
     "execute_tool_calls",
+    "ToolCallRecord",
 ]
 
 

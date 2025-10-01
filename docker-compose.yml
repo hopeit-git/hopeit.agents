@@ -1,10 +1,8 @@
 services:
   mcp-server:
     image: hopeit-agents-mcp-server
-    build:    
+    build:
       dockerfile: docker/Dockerfile
-    environment:
-      MCP_RANDOM_SEED: "1234"
 
 networks:
   default:

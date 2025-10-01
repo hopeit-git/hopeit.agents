@@ -13,9 +13,6 @@
       "url": "http://127.0.0.1:8765/mcp",
       "host": "127.0.0.1",
       "port": 8765,
-      "env": {
-        "MCP_RANDOM_SEED": "1234"
-      },
       "tool_cache_seconds": 10.0,
       "list_timeout_seconds": 5.0,
       "call_timeout_seconds": 60.0

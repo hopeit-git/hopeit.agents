@@ -62,9 +62,6 @@
         "plugins/mcp/mcp-server/config/dev-noauth.json,plugins/mcp/mcp-server/config/plugin-config.json,examples/plugins/example-tool/config/plugin-config.json"
       ],
       "cwd": "${workspaceFolder}",
-      "env": {
-        "MCP_RANDOM_SEED": "1234"
-      },
       "console": "integratedTerminal",
       "justMyCode": false
     },
@@ -81,9 +78,6 @@
         "plugins/mcp/mcp-server/config/dev-noauth.json,plugins/mcp/mcp-server/config/plugin-config.json,examples/plugins/example-tool/config/plugin-config.json"
       ],
       "cwd": "${workspaceFolder}",
-      "env": {
-        "MCP_RANDOM_SEED": "1234"
-      },
       "console": "integratedTerminal",
       "justMyCode": false
     },
@@ -103,9 +97,6 @@
         "mcp_client;mcp_client;1.0"
       ],
       "cwd": "${workspaceFolder}",
-      "env": {
-        "MCP_RANDOM_SEED": "1234"
-      },
       "console": "integratedTerminal",
       "justMyCode": false
     }

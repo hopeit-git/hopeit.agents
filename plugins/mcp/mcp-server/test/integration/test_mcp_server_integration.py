@@ -100,7 +100,7 @@ async def test_mcp_server_serves_example_tools(
         list_timeout_seconds=5.0,
         call_timeout_seconds=10.0,
     )
-    client = MCPClient(config=client_config, env={"MCP_RANDOM_SEED": "1234"})
+    client = MCPClient(config=client_config)
 
     tools = await client.list_tools()
     names = {tool.name for tool in tools}
