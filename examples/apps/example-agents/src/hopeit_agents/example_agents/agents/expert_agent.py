@@ -77,7 +77,7 @@ async def init_conversation(payload: ExpertAgentRequest, context: EventContext) 
     result_schema = _datatype_schema("", ExpertAgentResults)
     conversation = build_conversation(
         None,
-        user_message=payload.user_message,
+        message=payload.user_message,
         system_prompt=render_prompt(
             agent_config,
             {
