@@ -133,9 +133,9 @@ async def agent_with_tools_loop(
                 continue
             else:
                 # Finish tool call loop an return assistant response
-                conversation = conversation.with_message(
-                    Message(role=Role.ASSISTANT, content=completion.message.content or "")
-                )
+                # conversation = conversation.with_message(
+                #     Message(role=Role.ASSISTANT, content=completion.message.content or "")
+                # )
                 break
 
         # In case of error, usually parsing LLM response, keep looping to fix it
