@@ -41,6 +41,7 @@ class AgentLoopPayload:
     """Input payload required to run the agent loop."""
 
     conversation: Conversation
+    user_context: dict[str, Any]
     completion_config: CompletionConfig
     loop_config: AgentLoopConfig
     agent_settings: AgentSettings
@@ -53,6 +54,7 @@ class AgentLoopResult:
     """Outcome of the agent loop including the final conversation and tool log."""
 
     conversation: Conversation
+    user_context: dict[str, Any]
     tool_call_log: list[ToolCallRecord]
 
 
@@ -142,7 +144,9 @@ async def agent_with_tools_loop(
                 Message(role=Role.SYSTEM, content=f"Error parsing response: {e}")
             )
     # end loop
-    return AgentLoopResult(conversation=conversation, tool_call_log=tool_call_log)
+    return AgentLoopResult(
+        conversation=conversation, user_context=payload.user_context, tool_call_log=tool_call_log
+    )
 
 
 def _format_tool_result(result: ToolExecutionResult) -> str:
