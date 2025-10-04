@@ -1,4 +1,4 @@
-.PHONY: env clean-env deps format lint test dist-plugin clean-dist-plugin publish-plugin-pypi publish-plugin-pypi-test check-plugin-folder
+.PHONY: env clean-env deps format lint test publish-plugin-pypi publish-plugin-pypi-test
 
 PYTHONVERSION ?= 3.12
 
@@ -31,11 +31,15 @@ clean-env:
 	rm -rf .ruff_cache
 	rm -f uv.lock
 
-install-dev: env
+sync-dev:
 	$(UV) sync --dev --all-packages
+
+install-dev-nosync:
 	for module in $(MODULES); do \
 		$(UV) pip install -U --no-deps -e ./$$module; \
 	done
+
+install-dev: env sync-dev install-dev-nosync
 
 format:
 	$(UV_RUN) ruff format $(MODULES:%=%/src/) $(MODULES:%=%/test/)

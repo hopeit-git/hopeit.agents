@@ -98,6 +98,14 @@ class Conversation:
             created_at=self.created_at,
         )
 
+    def drop_last_message(self) -> "Conversation":
+        return Conversation(
+            conversation_id=self.conversation_id,
+            messages=self.messages[:-1],
+            session_id=self.session_id,
+            created_at=self.created_at,
+        )
+
 
 @dataobject
 @dataclass

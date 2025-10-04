@@ -5,7 +5,7 @@ from typing import Any
 from hopeit.app.logger import app_extra_logger
 from hopeit.dataobjects import dataclass, dataobject, field
 
-from hopeit_agents.agent_toolkit.mcp.agent_tools import (
+from hopeit_agents.mcp_client.models import (
     ToolCallRecord,
 )
 from hopeit_agents.model_client.models import Conversation, Message

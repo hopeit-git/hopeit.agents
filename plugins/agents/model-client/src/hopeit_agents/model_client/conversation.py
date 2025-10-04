@@ -12,7 +12,8 @@ __all__ = ["build_conversation"]
 def build_conversation(
     existing: Conversation | None,
     *,
-    user_message: str,
+    message: str,
+    role: Role = Role.USER,
     system_prompt: str | None = None,
     tool_prompt: str | None = None,
 ) -> Conversation:
@@ -32,7 +33,7 @@ def build_conversation(
                 )
             )
 
-    base_messages.append(Message(role=Role.USER, content=user_message))
+    base_messages.append(Message(role=role, content=message))
     return Conversation(
         conversation_id=existing.conversation_id if existing else str(uuid.uuid4()),
         messages=base_messages,
