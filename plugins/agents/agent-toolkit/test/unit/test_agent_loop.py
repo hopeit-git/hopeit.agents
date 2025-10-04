@@ -84,6 +84,7 @@ async def test_agent_loop_executes_tool_calls(monkeypatch: MonkeyPatch) -> None:
 
     payload = AgentLoopPayload(
         conversation=initial_conversation,
+        user_context={"current_date": "2025-01-01"},
         completion_config=CompletionConfig(model="test-model"),
         loop_config=AgentLoopConfig(max_iterations=1),
         agent_settings=AgentSettings(
@@ -113,6 +114,7 @@ async def test_agent_loop_executes_tool_calls(monkeypatch: MonkeyPatch) -> None:
     assert final_messages[-1].content == Payload.to_json(tool_result.structured_content, indent=2)
     assert final_messages[-1].tool_call_id == "call-1"
     assert result.tool_call_log == [record]
+    assert result.user_context == payload.user_context
 
 
 @pytest.mark.asyncio
@@ -146,6 +148,7 @@ async def test_agent_loop_returns_assistant_message(monkeypatch: MonkeyPatch) ->
 
     payload = AgentLoopPayload(
         conversation=initial_conversation,
+        user_context={"current_date": "2025-01-01"},
         completion_config=CompletionConfig(),
         loop_config=AgentLoopConfig(max_iterations=2),
         agent_settings=AgentSettings(
@@ -166,6 +169,7 @@ async def test_agent_loop_returns_assistant_message(monkeypatch: MonkeyPatch) ->
     assert final_messages[-1].role is Role.ASSISTANT
     assert final_messages[-1].content == "Sure!"
     assert result.tool_call_log == []
+    assert result.user_context == payload.user_context
 
 
 def test_format_tool_result_prefers_structured_content() -> None:
