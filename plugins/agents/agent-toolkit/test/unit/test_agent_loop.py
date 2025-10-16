@@ -150,7 +150,7 @@ async def test_agent_loop_returns_assistant_message(monkeypatch: MonkeyPatch) ->
         conversation=initial_conversation,
         user_context={"current_date": "2025-01-01"},
         completion_config=CompletionConfig(),
-        loop_config=AgentLoopConfig(max_iterations=2),
+        loop_config=AgentLoopConfig(max_iterations=2, append_last_assistant_message=True),
         agent_settings=AgentSettings(
             agent_name="test-agent", system_prompt_template="test-template.md", enable_tools=True
         ),

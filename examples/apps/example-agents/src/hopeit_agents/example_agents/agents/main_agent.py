@@ -66,7 +66,7 @@ async def init_conversation(payload: AgentRequest, context: EventContext) -> Age
     )
     completion_config = CompletionConfig(available_tools=tools)
     conversation = build_conversation(
-        None,
+        existing=None,
         message=payload.user_message,
         system_prompt=render_prompt(
             agent_config,
@@ -80,6 +80,7 @@ async def init_conversation(payload: AgentRequest, context: EventContext) -> Age
     )
     return AgentLoopPayload(
         conversation=conversation,
+        user_context={},
         completion_config=completion_config,
         loop_config=AgentLoopConfig(max_iterations=3),
         agent_settings=agent_settings,

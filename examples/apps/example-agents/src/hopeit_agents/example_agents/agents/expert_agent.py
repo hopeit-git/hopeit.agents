@@ -91,6 +91,7 @@ async def init_conversation(payload: ExpertAgentRequest, context: EventContext) 
     )
     return AgentLoopPayload(
         conversation=conversation,
+        user_context={},
         completion_config=completion_config,
         loop_config=AgentLoopConfig(max_iterations=10),
         agent_settings=agent_settings,

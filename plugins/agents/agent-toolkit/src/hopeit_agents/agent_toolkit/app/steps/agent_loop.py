@@ -30,9 +30,10 @@ from hopeit_agents.model_client.models import (
 @dataobject
 @dataclass
 class AgentLoopConfig:
-    """Configuration describing how many iterations the loop can run."""
+    """Configuration on how the loop can run."""
 
     max_iterations: int
+    append_last_assistant_message: bool = False
 
 
 @dataobject
@@ -86,17 +87,12 @@ async def agent_with_tools_loop(
 
     tool_call_log: list[ToolCallRecord] = []
 
-    for n_turn in range(0, loop_config.max_iterations):
+    for _ in range(0, loop_config.max_iterations):
         model_request = CompletionRequest(conversation=conversation, config=completion_config)
 
         try:
             completion = await model_generate.generate(model_request, context)
             conversation = completion.conversation
-
-            print("===========================================================")
-            print(n_turn, len(conversation.messages))
-            print("\n".join(f"{x.role}: {x.content}" for x in conversation.messages))
-            print("===========================================================")
 
             if agent_settings.enable_tools and completion.tool_calls:
                 tool_call_records = await execute_tool_calls(
@@ -132,10 +128,11 @@ async def agent_with_tools_loop(
                 # Keep going if last assistant message is empty
                 continue
             else:
-                # Finish tool call loop an return assistant response
-                # conversation = conversation.with_message(
-                #     Message(role=Role.ASSISTANT, content=completion.message.content or "")
-                # )
+                if payload.loop_config.append_last_assistant_message:
+                    # Finish tool call loop an return assistant response
+                    conversation = conversation.with_message(
+                        Message(role=Role.ASSISTANT, content=completion.message.content or "")
+                    )
                 break
 
         # In case of error, usually parsing LLM response, keep looping to fix it

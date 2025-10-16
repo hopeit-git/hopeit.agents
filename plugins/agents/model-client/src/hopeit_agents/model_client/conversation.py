@@ -19,17 +19,20 @@ def build_conversation(
 ) -> Conversation:
     """Return a conversation ensuring optional system and user prompts are present."""
     base_messages = list(existing.messages) if existing else []
-    if not base_messages:
-        system_parts = []
-        if system_prompt:
-            system_parts.append(system_prompt.strip())
-        if tool_prompt:
-            system_parts.append(tool_prompt)
-        if system_parts:
+
+    system_parts = []
+    if system_prompt:
+        system_parts.append(system_prompt.strip())
+    if tool_prompt:
+        system_parts.append(tool_prompt)
+    if system_parts:
+        content = "\n\n".join(part for part in system_parts if part)
+        if not base_messages or base_messages[0].content != content:
+            # Creates or updates system prompt
             base_messages.append(
                 Message(
                     role=Role.SYSTEM,
-                    content="\n\n".join(part for part in system_parts if part),
+                    content=content,
                 )
             )
 

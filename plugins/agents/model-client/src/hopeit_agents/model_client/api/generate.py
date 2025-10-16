@@ -12,6 +12,7 @@ __steps__ = ["generate"]
 
 __api__ = event_api(
     summary="hopeit_agents model client generate",
+    query_args=[("model_client_settings_key", str | None)],
     payload=(CompletionRequest, "Conversation and overrides"),
     responses={
         200: (CompletionResponse, "Completion result"),
@@ -22,9 +23,14 @@ __api__ = event_api(
 logger, extra = app_extra_logger()
 
 
-async def generate(payload: CompletionRequest, context: EventContext) -> CompletionResponse:
+async def generate(
+    payload: CompletionRequest, context: EventContext, *, model_client_settings_key: str = ""
+) -> CompletionResponse:
     """Call the provider using defaults from settings and request overrides."""
-    settings = context.settings(key="model_client", datatype=ModelClientSettings)
+    settings = context.settings(
+        key=model_client_settings_key if model_client_settings_key else "model_client",
+        datatype=ModelClientSettings,
+    )
 
     config = merge_config(settings, payload.config)
     api_key = settings.resolve_api_key(context.env)
