@@ -22,6 +22,26 @@
       "justMyCode": false
     },
     {
+      "name": "agents+skills",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "hopeit.server.web",
+      "args": [
+        "--config-files=examples/apps/example-agents/config/dev-noauth.json,plugins/agents/skills/config/plugin-config.json,plugins/agents/model-client/config/plugin-config.json,examples/apps/example-agents/config/app-config.json,examples/plugins/example-skills/config/plugin-config.json",
+        "--port=8020",
+        "--api-auto=AgentExample;AgentExample;1.0"
+      ],
+      "cwd": "${workspaceFolder}",
+      "env": {
+        "AGENT_MODEL_API_BASE": "http://localhost:11434/v1",
+        "AGENT_MODEL_NAME": "gpt-oss:20b",
+        "AGENT_DEPLOYMENT_NAME": "",
+        "AGENT_API_VERSION": "",
+      },
+      "console": "integratedTerminal",
+      "justMyCode": false
+    },
+    {
       "name": "sub-agents-mcp-server",
       "type": "debugpy",
       "request": "launch",

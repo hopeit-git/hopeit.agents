@@ -26,10 +26,12 @@ classifiers = [
 dynamic = ["readme"]
 dependencies = [
     "hopeit-agents.agent-toolkit",
+    "hopeit-agents.skills",
     "hopeit-agents.model-client",
     "hopeit-agents.mcp-server",
     "hopeit-agents.mcp-client",
     "hopeit-agents-example-agents",
+    "hopeit-agents-example-skills",
     "hopeit-agents-example-tool",
 ]
 
@@ -55,10 +57,12 @@ dev-dependencies = [
 
 [tool.uv.sources]
 hopeit-agents-agent-toolkit = { path = "plugins/agents/agent-toolkit" }
+hopeit-agents-skills = { path = "plugins/agents/skills" }
 hopeit-agents-model-client = { path = "plugins/agents/model-client" }
 hopeit-agents-mcp-server = { path = "plugins/mcp/mcp-server" }
 hopeit-agents-mcp-client = { path = "plugins/mcp/mcp-client" }
 hopeit-agents-example-tool = { path = "examples/plugins/example-tool" }
+hopeit-agents-example-skills = { path = "examples/plugins/example-skills" }
 hopeit-agents-example-agents = { path = "examples/apps/example-agents" }
 
 [tool.mypy]
@@ -82,10 +86,12 @@ pretty = true
 line-length = 100
 src = [
     "plugins/agents/agent-toolkit/src",
+    "plugins/agents/skills/src",
     "plugins/agents/model-client/src",
     "plugins/mcp/mcp-server/src",
     "plugins/mcp/mcp-client/src",
     "examples/apps/example-agents/src",
+    "examples/plugins/example-skills/src",
     "examples/plugins/example-tool/src",
 ]
 

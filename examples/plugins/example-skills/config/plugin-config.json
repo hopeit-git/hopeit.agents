@@ -1,0 +1,19 @@
+{
+  "app": {
+    "name": "hopeit-agents-example-skills",
+    "version": "0.1"
+  },
+  "engine": {
+    "import_modules": ["hopeit_agents.example_skills"]
+  },
+  "settings": {
+  },
+  "events": {
+    "skills.data_generation.generate_random": {
+      "type": "POST"
+    },
+    "skills.math.sum_two_numbers": {
+      "type": "POST"
+    }
+  }
+}
