@@ -2,22 +2,23 @@
 name = "hopeit_agents.workspace"
 version = "0.1.0"
 
-requires-python = ">=3.12"
+requires-python = ">=3.11"
 
 description = "Workspace for hopeit_agents plugins and examples"
-license = { text = "Apache 2" }
+license = "Apache-2.0"
 authors = [
     { name = "Leo Smerling & Pablo Canto", email = "contact@hopeit.com.ar" },
     { name = "Leo Smerling", email = "contact@hopeit.com.ar" },
     { name = "Pablo Canto", email = "contact@hopeit.com.ar" },
 ]
 classifiers = [
-    "License :: OSI Approved :: Apache Software License",
     "Intended Audience :: Developers",
     "Programming Language :: Python",
+    "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
-    "Development Status :: 3 - Alpha",
+    "Programming Language :: Python :: 3.14",
+    "Development Status :: 4 - Beta",
     "Operating System :: POSIX :: Linux",
     "Operating System :: MacOS :: MacOS X",
     "Operating System :: Microsoft :: Windows",
@@ -37,7 +38,9 @@ dependencies = [
 
 [tool.uv]
 package = false
-dev-dependencies = [
+
+[dependency-groups]
+dev = [
     "mypy>=1.13.0",
     "pytest>=8.3.3",
     "pytest-aiohttp>=1.0.5",
@@ -51,7 +54,6 @@ dev-dependencies = [
     "types-aiofiles>=24.1.0",
     "types-redis>=4.6.0",
     "uvloop>=0.21.0",
-    # "anyio>=4.10.0",
     "mcp[cli]>=1.14.1",
 ]
 

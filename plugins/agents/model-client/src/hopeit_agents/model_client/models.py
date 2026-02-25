@@ -3,7 +3,7 @@
 import json
 import uuid
 from datetime import UTC, datetime
-from enum import Enum
+from enum import StrEnum
 from typing import Any
 
 from hopeit.dataobjects import dataclass, dataobject, field
@@ -13,7 +13,7 @@ from hopeit.server.names import spinalcase
 from hopeit_agents.mcp_client.models import ToolDescriptor
 
 
-class Role(str, Enum):
+class Role(StrEnum):
     """Supported message roles."""
 
     SYSTEM = "system"

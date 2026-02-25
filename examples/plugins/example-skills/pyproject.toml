@@ -5,25 +5,21 @@ version = "0.1.0b2"
 description = "Example agent skills implemented as a hopeit.engine plugin"
 dynamic = ["readme"]
 
-dependencies = [
-    "hopeit.engine>=0.27.0",
-    "hopeit-agents.skills",
-]
+dependencies = ["hopeit.engine>=0.27.0", "hopeit-agents.skills"]
 
-license = { text = "Apache 2" }
+license = "Apache-2.0"
 authors = [
     { name = "Leo Smerling & Pablo Canto", email = "contact@hopeit.com.ar" },
     { name = "Leo Smerling", email = "contact@hopeit.com.ar" },
     { name = "Pablo Canto", email = "contact@hopeit.com.ar" },
 ]
 classifiers = [
-    "License :: OSI Approved :: Apache Software License",
     "Intended Audience :: Developers",
     "Programming Language :: Python",
-    "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
     "Framework :: AsyncIO",
 ]
 

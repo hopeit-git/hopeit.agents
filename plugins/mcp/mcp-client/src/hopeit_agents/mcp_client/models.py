@@ -1,20 +1,20 @@
 """Typed data objects for the MCP client plugin."""
 
-from enum import Enum
+from enum import StrEnum
 from typing import Any
 
 from hopeit.dataobjects import dataclass, dataobject, field
 from hopeit.dataobjects.payload import Payload
 
 
-class Transport(str, Enum):
+class Transport(StrEnum):
     """Supported MCP transport mechanisms."""
 
     STDIO = "stdio"
     HTTP = "http"
 
 
-class ToolExecutionStatus(str, Enum):
+class ToolExecutionStatus(StrEnum):
     """Outcome of a tool invocation."""
 
     SUCCESS = "success"
