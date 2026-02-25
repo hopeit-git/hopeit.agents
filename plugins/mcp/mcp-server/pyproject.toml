@@ -1,14 +1,14 @@
 [project]
 name = "hopeit-agents.mcp-server"
-version = "0.1.0b2"
+version = "0.1.1b1"
 
 description = "Hopeit Agents: Model Context Protocol server"
 dynamic = ["readme"]
 
 dependencies = [
-    "hopeit.engine>=0.27.0",
-    "mcp>=1.14.1",
-    "click>=8.1.8",
+    "hopeit.engine>=0.29.0",
+    "mcp>=1.26.0",
+    "click>=8.3.1",
 ]
 
 license = "Apache-2.0"

@@ -1,11 +1,11 @@
 [project]
 name = "hopeit_agents-example-skills"
-version = "0.1.0b2"
+version = "0.1.1b1"
 
 description = "Example agent skills implemented as a hopeit.engine plugin"
 dynamic = ["readme"]
 
-dependencies = ["hopeit.engine>=0.27.0", "hopeit-agents.skills"]
+dependencies = ["hopeit.engine>=0.29.0", "hopeit-agents.skills"]
 
 license = "Apache-2.0"
 authors = [

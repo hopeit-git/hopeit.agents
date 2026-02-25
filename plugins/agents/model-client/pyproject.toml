@@ -1,12 +1,12 @@
 [project]
 name = "hopeit-agents.model-client"
-version = "0.1.0b2"
+version = "0.1.1b1"
 
 description = "Hopeit Agents: LLM models client"
 dynamic = ["readme"]
 
 dependencies = [
-    "hopeit.engine>=0.27.0",
+    "hopeit.engine>=0.29.0",
 ]
 
 license = "Apache-2.0"
