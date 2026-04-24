@@ -10,5 +10,9 @@
   "settings": {
   },
   "events": {
+    "setup": {
+      "type": "SETUP",
+      "plug_mode": "OnApp"
+    }
   }
 }

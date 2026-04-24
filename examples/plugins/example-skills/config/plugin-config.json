@@ -3,6 +3,12 @@
     "name": "hopeit-agents-example-skills",
     "version": "0.1"
   },
+  "plugins": [
+   {
+      "name": "hopeit-agents-skills",
+      "version": "0.1"
+    } 
+  ],
   "engine": {
     "import_modules": ["hopeit_agents.example_skills"]
   },

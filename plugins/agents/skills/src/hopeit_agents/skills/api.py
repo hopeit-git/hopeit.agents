@@ -140,6 +140,8 @@ def _method_description(
 class SkillEventInfo:
     """Metadata describing how a hopeit event is exposed as an Agent Skill"""
 
+    app_key: str
+    """hopeit app_key containing skill implementation"""
     event_name: str
     """event name to call in hopeit engine"""
     event_info: EventDescriptor
@@ -148,13 +150,13 @@ class SkillEventInfo:
     """Simplified skill name"""
     title: str
     """Full skill title"""
-    summary: str
+    summary: str | None
     """skill summary"""
     description: str
     """A human-readable description of the skill."""
-    inputSchema: dict[str, Any]
+    input_schema: dict[str, Any]
     """A JSON Schema object defining the expected parameters for the skill."""
-    outputSchema: dict[str, Any] | None = None
+    output_schema: dict[str, Any] | None = None
     """An optional JSON Schema object defining the structure of the skill's output."""
     meta: dict[str, Any] | None = None
     """Additional optional metadata"""
@@ -188,14 +190,15 @@ def extract_app_skill_specs(
                 app_config if plugin is None else plugin, event_name, event_info
             )
             yield SkillEventInfo(
+                app_key=app_config.app_key(),
                 event_name=event_name,
                 event_info=event_info,
                 skill_name=skill_name,
                 title=_format_title(full_skill_name),
                 summary=event_spec["responses"]["200"].get("summary"),
                 description=event_spec["description"],
-                inputSchema=event_spec["requestBody"]["content"]["application/json"]["schema"],
-                outputSchema=event_spec["responses"]["200"]["content"]["application/json"][
+                input_schema=event_spec["requestBody"]["content"]["application/json"]["schema"],
+                output_schema=event_spec["responses"]["200"]["content"]["application/json"][
                     "schema"
                 ],
             )
@@ -208,14 +211,14 @@ def _format_title(string: str) -> str:
 def _extract_event_tool_spec(
     app_config: AppConfig, event_name: str, event_info: EventDescriptor
 ) -> dict[str, Any]:
-    """Fetch the `__mcp__` specification from an event implementation module."""
+    """Fetch the `__skill__` specification from an event implementation module."""
     module = find_event_handler(app_config=app_config, event_name=event_name, event_info=event_info)
-    if hasattr(module, "__mcp__"):
-        method_spec = module.__mcp__
+    if hasattr(module, "__skill__"):
+        method_spec = module.__skill__
         if isinstance(method_spec, dict):
             return method_spec
         return method_spec(module, app_config, event_name, None)  # type: ignore[no-any-return]
-    raise TypeError(f"Missing __mcp__ spec for event: {app_config.app_key}.{event_name}")
+    raise TypeError(f"Missing __skill__ spec for event: {app_config.app_key}.{event_name}")
 
 
 def app_skill_name(
