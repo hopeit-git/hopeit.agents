@@ -73,7 +73,7 @@ async def call_skill(
         )
         raise RuntimeError(f"Skill not found: {skill_name}")
 
-    result = runner.execute_skill(skill, payload, context)
+    result = await runner.execute_skill(skill, payload, context)
     return SkillExecutionResult(
         call_id=call_id,
         skill_name=skill_name,

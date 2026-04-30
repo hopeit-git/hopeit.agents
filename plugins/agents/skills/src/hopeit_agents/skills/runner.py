@@ -1,3 +1,4 @@
+from copy import deepcopy
 from typing import Any
 
 from hopeit.app.context import EventContext
@@ -9,7 +10,7 @@ from hopeit.server.steps import find_datatype_handler
 from hopeit_agents.skills.api import SkillEventInfo
 
 
-def execute_skill(
+async def execute_skill(
     skill_info: SkillEventInfo, payload: dict[str, Any], context: EventContext
 ) -> dict[str, Any] | list[Any] | set[Any]:
     app_engine: AppEngine = runtime.server.app_engines[skill_info.app_key]
@@ -18,7 +19,9 @@ def execute_skill(
         event_name=skill_info.event_name,
         event_info=skill_info.event_info,
     )
-    result = app_engine.execute(
+    skill_context = deepcopy(context)
+    skill_context.event_name = skill_info.event_name
+    result = await app_engine.execute(
         context=context, query_args=None, payload=Payload.from_obj(payload, datatype=datatype)
     )
     return Payload.to_obj(result)
