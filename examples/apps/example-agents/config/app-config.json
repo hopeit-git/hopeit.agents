@@ -50,6 +50,13 @@
       "enable_tools": true,
       "include_tool_schemas_in_prompt": true
     },
+    "skills_agent_llm": {
+      "agent_name": "skills-agent",
+      "system_prompt_template": "examples/apps/example-agents/config/agents/skills-agent-prompt.md",
+      "tool_prompt_template": "examples/apps/example-agents/config/agents/tool-call-prompt.md",
+      "enable_tools": true,
+      "include_tool_schemas_in_prompt": true
+    },
     "agents.main_agent": {
       "response_timeout": 600
     },
@@ -72,6 +79,14 @@
         "expert_agent_llm",
         "model_client",
         "mcp_client_example_tools"
+      ],
+      "group": "sub-agents"
+    },
+    "agents.skills_agent": {
+      "type": "POST",
+      "setting_keys": [
+        "skills_agent_llm",
+        "model_client"
       ],
       "group": "sub-agents"
     }

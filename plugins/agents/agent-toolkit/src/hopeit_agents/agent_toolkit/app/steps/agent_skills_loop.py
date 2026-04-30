@@ -18,10 +18,10 @@ from hopeit_agents.model_client.models import (
     Role,
 )
 from hopeit_agents.skills.models import (
-    SkillsConfig,
-    ToolCallRecord,
-    ToolExecutionResult,
-    ToolInvocation,
+    SkillCallRecord,
+    SkillExecutionResult,
+    SkillInvocation,
+    SkillsSettings,
 )
 
 
@@ -44,7 +44,7 @@ class AgentLoopPayload:
     completion_config: CompletionConfig
     loop_config: AgentLoopConfig
     agent_settings: AgentSettings
-    mcp_settings: SkillsConfig
+    skills_settings: SkillsSettings
     metadata: dict[str, str] = field(default_factory=dict)
 
 
@@ -55,11 +55,11 @@ class AgentLoopResult:
 
     conversation: Conversation
     user_context: dict[str, Any]
-    tool_call_log: list[ToolCallRecord]
+    tool_call_log: list[SkillCallRecord]
     metadata: dict[str, str] = field(default_factory=dict)
 
 
-async def agent_with_tools_loop(
+async def agent_with_skills_loop(
     payload: AgentLoopPayload, context: EventContext
 ) -> AgentLoopResult:
     """Execute the agent reasoning loop using an LLM with optional tool calls.
@@ -83,9 +83,9 @@ async def agent_with_tools_loop(
     completion_config = payload.completion_config
     loop_config = payload.loop_config
     agent_settings = payload.agent_settings
-    mcp_settings = payload.mcp_settings
+    skills_settings = payload.skills_settings
 
-    tool_call_log: list[ToolCallRecord] = []
+    tool_call_log: list[SkillCallRecord] = []
 
     for _ in range(0, loop_config.max_iterations):
         model_request = CompletionRequest(conversation=conversation, config=completion_config)
@@ -96,11 +96,11 @@ async def agent_with_tools_loop(
 
             if agent_settings.enable_tools and completion.tool_calls:
                 tool_call_records = await execute_skill_calls(
-                    mcp_settings,
+                    skills_settings,
                     context,
                     skill_calls=[
-                        ToolInvocation(
-                            tool_name=tc.function.name,
+                        SkillInvocation(
+                            skill_name=tc.function.name,
                             payload=Payload.from_json(
                                 tc.function.arguments, datatype=dict[str, Any]
                             ),
@@ -117,8 +117,8 @@ async def agent_with_tools_loop(
                         Message(
                             role=Role.TOOL,
                             content=_format_tool_result(record.response),
-                            tool_call_id=record.request.tool_call_id,
-                            name=record.request.tool_name,
+                            tool_call_id=record.request.skill_call_id,
+                            name=record.request.skill_name,
                         ),
                     )
 
@@ -149,7 +149,7 @@ async def agent_with_tools_loop(
     )
 
 
-def _format_tool_result(result: ToolExecutionResult) -> str:
+def _format_tool_result(result: SkillExecutionResult) -> str:
     """Return a JSON-formatted string for tool execution results."""
 
     if result.structured_content is not None:

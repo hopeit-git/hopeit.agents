@@ -6,8 +6,8 @@ from typing import Any
 from hopeit.dataobjects import dataclass, dataobject, field
 
 
-class ToolExecutionStatus(StrEnum):
-    """Outcome of a tool invocation."""
+class SkillExecutionStatus(StrEnum):
+    """Outcome of a skill invocation."""
 
     SUCCESS = "success"
     ERROR = "error"
@@ -15,28 +15,28 @@ class ToolExecutionStatus(StrEnum):
 
 @dataobject
 @dataclass
-class ToolDescriptor:
-    """Definition for a tool the client can call."""
+class SkillDescriptor:
+    """Definition for a skill the client can call."""
 
     name: str
     """The programmatic name of the entity."""
     title: str | None
-    """Tool title."""
+    """Skill title."""
     description: str | None
-    """A human-readable description of the tool."""
+    """A human-readable description of the skill."""
     input_schema: dict[str, Any]
-    """A JSON Schema object defining the expected parameters for the tool."""
+    """A JSON Schema object defining the expected parameters for the skill."""
     output_schema: dict[str, Any] | None
     """
-    An optional JSON Schema object defining the structure of the tool's output
-    returned in the structuredContent field of a CallToolResult.
+    An optional JSON Schema object defining the structure of the skill's output
+    returned in the structuredContent field of a CallSkillResult.
     """
 
     def to_openai_dict(self) -> dict[str, Any]:
         """
-        Convert this ToolDescriptor to an OpenAI tool definition dictionary.
+        Convert this SkillDescriptor to an OpenAI skill definition dictionary.
         """
-        tool_def: dict[str, Any] = {
+        skill_def: dict[str, Any] = {
             "type": "function",
             "function": {
                 "name": self.name,
@@ -45,21 +45,21 @@ class ToolDescriptor:
             },
         }
         if self.title:
-            tool_def["function"]["title"] = self.title
+            skill_def["function"]["title"] = self.title
         if self.output_schema is not None:
-            tool_def["function"]["response"] = {
+            skill_def["function"]["response"] = {
                 "type": "json_schema",
                 "json_schema": self.output_schema,
             }
-        return tool_def
+        return skill_def
 
 
 @dataobject
 @dataclass
-class ToolInvocation:
-    """Payload to invoke a tool."""
+class SkillInvocation:
+    """Payload to invoke a skill."""
 
-    tool_name: str
+    skill_name: str
     payload: dict[str, Any] = field(default_factory=dict)
     call_id: str | None = None
     session_id: str | None = None
@@ -67,12 +67,12 @@ class ToolInvocation:
 
 @dataobject
 @dataclass
-class ToolExecutionResult:
-    """Result of calling a tool through MCP."""
+class SkillExecutionResult:
+    """Result of calling a skill through MCP."""
 
     call_id: str
-    tool_name: str
-    status: ToolExecutionStatus
+    skill_name: str
+    status: SkillExecutionStatus
     content: list[dict[str, Any]] = field(default_factory=list)
     structured_content: dict[str, Any] | list[Any] | None = None
     error_message: str | None = None
@@ -82,24 +82,24 @@ class ToolExecutionResult:
 
 @dataobject
 @dataclass
-class ToolCallRequestLog:
-    """Captured request details for a tool call."""
+class SkillCallRequestLog:
+    """Captured request details for a skill call."""
 
-    tool_call_id: str
-    tool_name: str
+    skill_call_id: str
+    skill_name: str
     payload: dict[str, Any] = field(default_factory=dict)
 
 
 @dataobject
 @dataclass
-class ToolCallRecord:
-    """Aggregated tool call request and response for logging/telemetry."""
+class SkillCallRecord:
+    """Aggregated skill call request and response for logging/telemetry."""
 
-    request: ToolCallRequestLog
-    response: ToolExecutionResult
+    request: SkillCallRequestLog
+    response: SkillExecutionResult
 
 
 @dataobject
 @dataclass
-class SkillsConfig:
+class SkillsSettings:
     skills_generation_path: str = "./_skills"

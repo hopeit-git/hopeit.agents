@@ -205,6 +205,37 @@ def tool_call_from_openai_dict(
     )
 
 
+def skill_call_from_openai_dict(
+    tool: dict[str, Any], available_tools: list[SkillEventInfo] | None = None
+) -> ToolCall:
+    """Create a ToolCall from a dict returned by OpenAI-compatible APIs."""
+    arguments_data = tool.get("function", {}).get("arguments")
+    parsed_args: dict[str, Any]
+    if isinstance(arguments_data, str):
+        try:
+            parsed_args = json.loads(arguments_data)
+        except json.JSONDecodeError:
+            parsed_args = {"raw": arguments_data}
+    elif isinstance(arguments_data, dict):
+        parsed_args = arguments_data
+    else:
+        parsed_args = {"raw": arguments_data}
+
+    tool_name = _resolve_skill_name(
+        str(tool.get("function", {}).get("name", "")), parsed_args, available_tools or []
+    )
+    tool_name, arguments = _resolve_skill_arguments(tool_name, parsed_args, available_tools or [])
+
+    return ToolCall(
+        id=f"call_{uuid.uuid4().hex[-10:]}",
+        type="function",
+        function=ToolFunctionCall(
+            name=tool_name,
+            arguments=Payload.to_json(arguments),
+        ),
+    )
+
+
 def _resolve_tool_name(
     extracted_name: str, parsed_args: dict[str, Any], available_tools: list[ToolDescriptor]
 ) -> str:
@@ -238,6 +269,42 @@ def _resolve_arguments(
         for _k, v in parsed_args.items():
             if isinstance(v, dict) and v.keys() == t.input_schema["properties"].keys():
                 return t.name, v
+    return tool_name, parsed_args
+
+
+def _resolve_skill_name(
+    extracted_name: str, parsed_args: dict[str, Any], available_tools: list[SkillEventInfo]
+) -> str:
+    """Resolve the best matching tool name using extracted data and known descriptors."""
+    tool_names = {t.skill_name for t in available_tools}
+    # Resolve tool name
+    if spinalcase(extracted_name) not in tool_names:
+        for t in available_tools:
+            if t.skill_name in spinalcase(extracted_name):
+                return t.skill_name
+            for k, v in parsed_args.items():
+                if t.skill_name in spinalcase(str(k)) or t.skill_name in spinalcase(str(v)):
+                    return t.skill_name
+    return spinalcase(extracted_name)
+
+
+def _resolve_skill_arguments(
+    tool_name: str, parsed_args: dict[str, Any], available_tools: list[SkillEventInfo]
+) -> tuple[str, dict[str, Any]]:
+    """Normalize arguments to match the resolved tool schema when possible."""
+    for t in available_tools:
+        if tool_name == t.skill_name:
+            if parsed_args.keys() == t.input_schema["properties"].keys():
+                return t.skill_name, parsed_args
+            for _k, v in parsed_args.items():
+                if isinstance(v, dict) and v.keys() == t.input_schema["properties"].keys():
+                    return t.skill_name, v
+    for t in available_tools:
+        if parsed_args.keys() == t.input_schema["properties"].keys():
+            return t.skill_name, parsed_args
+        for _k, v in parsed_args.items():
+            if isinstance(v, dict) and v.keys() == t.input_schema["properties"].keys():
+                return t.skill_name, v
     return tool_name, parsed_args
 
 

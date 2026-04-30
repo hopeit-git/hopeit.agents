@@ -6,42 +6,39 @@ from hopeit.app.logger import app_extra_logger
 
 from hopeit_agents.agent_toolkit.agents.agent_config import create_agent_config
 from hopeit_agents.agent_toolkit.agents.prompts import render_prompt
-from hopeit_agents.agent_toolkit.app.steps.agent_loop import (
+from hopeit_agents.agent_toolkit.app.steps.agent_skills_loop import (
     AgentLoopConfig,
     AgentLoopPayload,
     AgentLoopResult,
-    agent_with_tools_loop,
+    agent_with_skills_loop,
 )
 from hopeit_agents.agent_toolkit.settings import AgentSettings
 from hopeit_agents.agent_toolkit.skills.agent_skills import (
     resolve_skills,
     skill_descriptions,
 )
-from hopeit_agents.example_agents.models import AgentRequest, AgentResponse
-from hopeit_agents.mcp_client.models import MCPClientConfig
+from hopeit_agents.example_agents.models import AgentRequest, SkillsAgentResponse
 from hopeit_agents.model_client.conversation import build_conversation
 from hopeit_agents.model_client.models import CompletionConfig
+from hopeit_agents.skills.models import SkillsSettings
 
 logger, extra = app_extra_logger()
 
 
-__steps__ = ["init_conversation", agent_with_tools_loop.__name__, "result"]
+__steps__ = ["init_conversation", agent_with_skills_loop.__name__, "result"]
 
 
 __api__ = event_api(
-    summary="example-agents: main agent",
+    summary="example-agents: skills agent",
     payload=(AgentRequest, "Agent task description"),
-    responses={200: (AgentResponse, "Aggregated agent response")},
+    responses={200: (SkillsAgentResponse, "Aggregated agent response")},
 )
 
 
 async def init_conversation(payload: AgentRequest, context: EventContext) -> AgentLoopPayload:
     """Build the initial conversation and tool prompt for the main agent."""
-    agent_settings: AgentSettings = context.settings(key="main_agent_llm", datatype=AgentSettings)
-    mcp_settings: MCPClientConfig = context.settings(
-        key="sub_agents_mcp_client", datatype=MCPClientConfig
-    )
-
+    agent_settings: AgentSettings = context.settings(key="skills_agent_llm", datatype=AgentSettings)
+    skills_settings: SkillsSettings = context.settings(key="skills", datatype=SkillsSettings)
     assert agent_settings.system_prompt_template, "missing system_prompt_template"
     assert agent_settings.tool_prompt_template, "missing tool_prompt_template"
 
@@ -83,16 +80,16 @@ async def init_conversation(payload: AgentRequest, context: EventContext) -> Age
         completion_config=completion_config,
         loop_config=AgentLoopConfig(max_iterations=3),
         agent_settings=agent_settings,
-        mcp_settings=mcp_settings,
+        skills_settings=skills_settings,
     )
 
 
-async def result(payload: AgentLoopResult, context: EventContext) -> AgentResponse:
+async def result(payload: AgentLoopResult, context: EventContext) -> SkillsAgentResponse:
     """Wrap the final loop message and tool call log into a response object."""
     last_message = payload.conversation.messages[-1]
-    response = AgentResponse(
+    response = SkillsAgentResponse(
         conversation=payload.conversation,
         assistant_message=last_message,
-        tool_calls=payload.tool_call_log,
+        skill_calls=payload.tool_call_log,
     )
     return response

@@ -15,7 +15,7 @@ async def init_skills(payload: None, context: EventContext) -> None:
     """
     This method initializes skill files.
     """
-    # config = context.settings(key="agent_skills", datatype=SkillsConfig)
+    # config = context.settings(key="agent_skills", datatype=SkillsSettings)
     app_engine = runtime.server.app_engines[context.app_key]
     app_config = app_engine.app_config
     # if context.plugin_key:

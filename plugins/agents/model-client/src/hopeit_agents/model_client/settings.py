@@ -52,6 +52,7 @@ def merge_config(
             tool_choice=base.tool_choice,
             enable_tool_expansion=base.enable_tool_expansion,
             available_tools=base.available_tools,
+            available_skills=base.available_skills,
         )
     else:
         target = CompletionConfig(
@@ -68,6 +69,7 @@ def merge_config(
             if override.enable_tool_expansion is not None
             else base.enable_tool_expansion,
             available_tools=override.available_tools or base.available_tools,
+            available_skills=override.available_skills or base.available_skills,
         )
     if target.enable_tool_expansion is None:
         target.enable_tool_expansion = True

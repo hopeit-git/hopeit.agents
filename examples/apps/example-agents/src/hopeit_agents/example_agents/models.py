@@ -9,6 +9,7 @@ from hopeit_agents.mcp_client.models import (
     ToolCallRecord,
 )
 from hopeit_agents.model_client.models import Conversation, Message
+from hopeit_agents.skills.models import SkillCallRecord
 
 logger, extra = app_extra_logger()
 
@@ -30,6 +31,16 @@ class AgentResponse:
     conversation: Conversation
     assistant_message: Message
     tool_calls: list[ToolCallRecord] = field(default_factory=list)
+
+
+@dataobject
+@dataclass
+class SkillsAgentResponse:
+    """Agent execution output."""
+
+    conversation: Conversation
+    assistant_message: Message
+    skill_calls: list[SkillCallRecord] = field(default_factory=list)
 
 
 @dataobject

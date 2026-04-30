@@ -12,12 +12,12 @@ from hopeit.app.logger import app_extra_logger
 from hopeit_agents.skills import registry, runner
 from hopeit_agents.skills.api import SkillEventInfo
 from hopeit_agents.skills.models import (
-    SkillsConfig,
-    ToolCallRecord,
-    ToolCallRequestLog,
-    ToolExecutionResult,
-    ToolExecutionStatus,
-    ToolInvocation,
+    SkillCallRecord,
+    SkillCallRequestLog,
+    SkillExecutionResult,
+    SkillExecutionStatus,
+    SkillInvocation,
+    SkillsSettings,
 )
 
 logger, extra = app_extra_logger()
@@ -55,14 +55,14 @@ def skill_descriptions(
 
 
 async def call_skill(
-    config: SkillsConfig,
+    config: SkillsSettings,
     context: EventContext,
     *,
     call_id: str,
     skill_name: str,
     payload: dict[str, Any],
     session_id: str | None = None,
-) -> ToolExecutionResult:
+) -> SkillExecutionResult:
     """Execute a skill through the skills plugin runner using the provided payload."""
     skill = registry.find_skill(skill_name)
     if skill is None:
@@ -74,37 +74,37 @@ async def call_skill(
         raise RuntimeError(f"Skill not found: {skill_name}")
 
     result = runner.execute_skill(skill, payload, context)
-    return ToolExecutionResult(
+    return SkillExecutionResult(
         call_id=call_id,
-        tool_name=skill_name,
-        status=ToolExecutionStatus.SUCCESS,
+        skill_name=skill_name,
+        status=SkillExecutionStatus.SUCCESS,
         content=list(result) if isinstance(result, (list, set)) else [result],
         structured_content=list(result) if isinstance(result, (list, set)) else result,
     )
 
 
 async def execute_skill_calls(
-    config: SkillsConfig,
+    config: SkillsSettings,
     context: EventContext,
     *,
-    skill_calls: list[ToolInvocation],
+    skill_calls: list[SkillInvocation],
     session_id: str | None = None,
-) -> list[ToolCallRecord]:
+) -> list[SkillCallRecord]:
     """Execute multiple skill calls capturing request and response data."""
-    records: list[ToolCallRecord] = []
+    records: list[SkillCallRecord] = []
     for skill_call in skill_calls:
         result = await call_skill(
             config,
             context,
             call_id=skill_call.call_id or f"call_{uuid.uuid4().hex[-10:]}",
-            skill_name=skill_call.tool_name,
+            skill_name=skill_call.skill_name,
             payload=skill_call.payload,
             session_id=session_id,
         )
-        request_log = ToolCallRequestLog(
-            tool_call_id=result.call_id,
-            tool_name=skill_call.tool_name,
+        request_log = SkillCallRequestLog(
+            skill_call_id=result.call_id,
+            skill_name=skill_call.skill_name,
             payload=skill_call.payload,
         )
-        records.append(ToolCallRecord(request=request_log, response=result))
+        records.append(SkillCallRecord(request=request_log, response=result))
     return records
