@@ -11,6 +11,7 @@ from hopeit.dataobjects.payload import Payload
 from hopeit.server.names import spinalcase
 
 from hopeit_agents.mcp_client.models import ToolDescriptor
+from hopeit_agents.skills.api import SkillEventInfo
 
 
 class Role(StrEnum):
@@ -129,6 +130,7 @@ class CompletionConfig:
     tool_choice: str | None = None
     enable_tool_expansion: bool | None = None
     available_tools: list[ToolDescriptor] | None = None
+    available_skills: list[SkillEventInfo] | None = None
 
 
 @dataobject
