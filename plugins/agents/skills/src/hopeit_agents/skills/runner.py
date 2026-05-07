@@ -1,4 +1,3 @@
-from copy import deepcopy
 from typing import Any
 
 from hopeit.app.context import EventContext
@@ -19,9 +18,15 @@ async def execute_skill(
         event_name=skill_info.event_name,
         event_info=skill_info.event_info,
     )
-    skill_context = deepcopy(context)
-    skill_context.event_name = skill_info.event_name
+    skill_context = EventContext(
+        app_config=app_engine.app_config,
+        plugin_config=app_engine.app_config,
+        event_name=skill_info.event_name,
+        settings=context.settings,
+        track_ids=context.track_ids,
+        auth_info=context.auth_info,
+    )
     result = await app_engine.execute(
-        context=context, query_args=None, payload=Payload.from_obj(payload, datatype=datatype)
+        context=skill_context, query_args=None, payload=Payload.from_obj(payload, datatype=datatype)
     )
     return Payload.to_obj(result)
