@@ -51,7 +51,7 @@ class AgentLoopPayload:
 @dataobject
 @dataclass
 class AgentLoopResult:
-    """Outcome of the agent loop including the final conversation and tool log."""
+    """Outcome of the agent loop including the final conversation and skill log."""
 
     conversation: Conversation
     user_context: dict[str, Any]
@@ -62,21 +62,21 @@ class AgentLoopResult:
 async def agent_with_skills_loop(
     payload: AgentLoopPayload, context: EventContext
 ) -> AgentLoopResult:
-    """Execute the agent reasoning loop using an LLM with optional tool calls.
+    """Execute the agent reasoning loop using an LLM with optional skill calls.
 
     The loop keeps requesting completions from the model until it either produces
     a final assistant message or reaches the configured maximum number of
-    iterations. When the model returns tool calls and tools are enabled, the
-    calls are executed using the MCP client and the results appended to the
-    conversation, allowing the model to observe tool responses in subsequent
+    iterations. When the model returns skill calls and skills are enabled, the
+    calls are executed using the skills client and the results appended to the
+    conversation, allowing the model to observe skill responses in subsequent
     turns.
 
     Args:
-        payload: Aggregated configuration, conversation state, and MCP settings.
-        context: Hopeit event context used to execute the model and tools.
+        payload: Aggregated configuration, conversation state, and skills settings.
+        context: Hopeit event context used to execute the model and skills.
 
     Returns:
-        AgentLoopResult containing the updated conversation and executed tool log.
+        AgentLoopResult containing the updated conversation and executed skill log.
     """
 
     conversation = payload.conversation
@@ -150,7 +150,7 @@ async def agent_with_skills_loop(
 
 
 def _format_tool_result(result: SkillExecutionResult) -> str:
-    """Return a JSON-formatted string for tool execution results."""
+    """Return a JSON-formatted string for skill execution results."""
 
     if result.structured_content is not None:
         return Payload.to_json(result.structured_content, indent=2)
