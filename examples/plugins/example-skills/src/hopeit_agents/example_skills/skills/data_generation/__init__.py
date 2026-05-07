@@ -1,1 +1,1 @@
-"""Tools exposed by the example tool plugin."""
+"""Skills exposed by the example skill plugin."""

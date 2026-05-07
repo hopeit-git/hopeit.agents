@@ -1,4 +1,4 @@
-"""Main agent event that coordinates the tool-enabled agent loop."""
+"""Main agent event that coordinates the skill-enabled agent loop."""
 
 from hopeit.app.api import event_api
 from hopeit.app.context import EventContext
@@ -36,7 +36,7 @@ __api__ = event_api(
 
 
 async def init_conversation(payload: AgentRequest, context: EventContext) -> AgentLoopPayload:
-    """Build the initial conversation and tool prompt for the main agent."""
+    """Build the initial conversation and skill prompt for the main agent."""
     agent_settings: AgentSettings = context.settings(key="skills_agent_llm", datatype=AgentSettings)
     skills_settings: SkillsSettings = context.settings(key="skills", datatype=SkillsSettings)
     assert agent_settings.system_prompt_template, "missing system_prompt_template"
@@ -85,7 +85,7 @@ async def init_conversation(payload: AgentRequest, context: EventContext) -> Age
 
 
 async def result(payload: AgentLoopResult, context: EventContext) -> SkillsAgentResponse:
-    """Wrap the final loop message and tool call log into a response object."""
+    """Wrap the final loop message and skill call log into a response object."""
     last_message = payload.conversation.messages[-1]
     response = SkillsAgentResponse(
         conversation=payload.conversation,

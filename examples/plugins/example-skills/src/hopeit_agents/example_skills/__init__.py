@@ -1,1 +1,1 @@
-"""Example MCP tool plugin."""
+"""Example skill plugin."""

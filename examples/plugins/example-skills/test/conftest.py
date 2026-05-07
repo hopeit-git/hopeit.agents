@@ -1,1 +1,1 @@
-"""Shared pytest configuration for example tool tests."""
+"""Shared pytest configuration for example skill tests."""

@@ -1,4 +1,4 @@
-"""Random number generator tool event."""
+"""Random number generator skill event."""
 
 import random
 

@@ -1,4 +1,4 @@
-"""Sum two numbers tool event."""
+"""Sum two numbers skill event."""
 
 from hopeit.app.context import EventContext
 from hopeit.app.logger import app_extra_logger

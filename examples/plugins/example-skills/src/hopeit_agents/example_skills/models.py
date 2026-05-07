@@ -1,4 +1,4 @@
-"""Data objects for the example tool."""
+"""Data objects for the example skills."""
 
 from hopeit.dataobjects import dataclass, dataobject
 
@@ -15,7 +15,7 @@ class MinMaxRange:
 @dataobject
 @dataclass
 class RandomNumberRequest:
-    """Request payload for the random number tool."""
+    """Request payload for the random number skill."""
 
     range: MinMaxRange
 
@@ -31,7 +31,7 @@ class RandomNumberResult:
 @dataobject
 @dataclass
 class RandomNumberResponse:
-    """Tool response containing the generated value."""
+    """Skill response containing the generated value."""
 
     result: RandomNumberResult
 
@@ -39,7 +39,7 @@ class RandomNumberResponse:
 @dataobject
 @dataclass
 class SumTwoNumberRequest:
-    """Request payload for the sum two numbers tool."""
+    """Request payload for the sum two numbers skill."""
 
     a: int
     b: int
@@ -48,6 +48,6 @@ class SumTwoNumberRequest:
 @dataobject
 @dataclass
 class SumTwoNumberResponse:
-    """Response for the sum two numbers tool."""
+    """Response for the sum two numbers skill."""
 
     result: int
