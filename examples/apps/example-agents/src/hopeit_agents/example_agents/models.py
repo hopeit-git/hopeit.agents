@@ -74,3 +74,13 @@ def agent_usage(usage: RunUsage) -> AgentUsage:
         input_tokens=usage.input_tokens,
         output_tokens=usage.output_tokens,
     )
+
+
+def combine_usage(*items: AgentUsage) -> AgentUsage:
+    """Combine usage projections from sequential agent workflow steps."""
+    return AgentUsage(
+        requests=sum(item.requests for item in items),
+        tool_calls=sum(item.tool_calls for item in items),
+        input_tokens=sum(item.input_tokens for item in items),
+        output_tokens=sum(item.output_tokens for item in items),
+    )

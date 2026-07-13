@@ -4,7 +4,7 @@ import pytest
 from pydantic_ai import UsageLimits
 from pydantic_ai.models.test import TestModel
 
-from hopeit_agents.example_agents.agents.expert_agent import run_expert_agent
+from hopeit_agents.example_agents.agents.expert_agent import create_expert_agent
 from hopeit_agents.example_agents.models import ExpertAgentResults
 from hopeit_agents.example_agents.tools import ExpertAgentDeps, sum_two_numbers
 
@@ -20,12 +20,11 @@ async def test_expert_agent_returns_typed_results() -> None:
         custom_output_args={"expr_values": [{"expr": "x + 2", "value": 9}]},
     )
 
-    result = await run_expert_agent(
+    agent = create_expert_agent(model, "Use both tools and return structured results.")
+    result = await agent.run(
         "x + 2 where x is between 1 and 10",
-        model=model,
-        instructions="Use both tools and return structured results.",
         deps=ExpertAgentDeps(random_number=lambda _minimum, _maximum: 7),
-        limits=UsageLimits(request_limit=5, tool_calls_limit=5),
+        usage_limits=UsageLimits(request_limit=5, tool_calls_limit=5),
     )
 
     assert isinstance(result.output, ExpertAgentResults)

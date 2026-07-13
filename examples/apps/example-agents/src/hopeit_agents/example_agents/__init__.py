@@ -1,1 +1,1 @@
-"""Hopeit application demonstrating native agent delegation and tools."""
+"""Hopeit application demonstrating sequential agent workflows and tools."""

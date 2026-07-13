@@ -1,21 +1,23 @@
-"""Main agent that delegates expression solving to the expert agent in process."""
+"""Sequential Hopeit workflow coordinating the main and expert agents."""
 
-from dataclasses import dataclass
+import json
 from typing import Any
 
 from hopeit.app.api import event_api
 from hopeit.app.context import EventContext
-from pydantic_ai import Agent, RunContext, UsageLimits
+from hopeit.dataobjects import dataclass, dataobject
+from pydantic_ai import Agent
 from pydantic_ai.models import Model
-from pydantic_ai.run import AgentRunResult
 
 from hopeit_agents.agent_model import SETTINGS_KEY, AgentModelSettings, build_agent_model
-from hopeit_agents.example_agents.agents.expert_agent import run_expert_agent
+from hopeit_agents.example_agents.agents.expert_agent import create_expert_agent
 from hopeit_agents.example_agents.models import (
     AgentRequest,
     AgentResponse,
+    AgentUsage,
     ExpertAgentResults,
     agent_usage,
+    combine_usage,
 )
 from hopeit_agents.example_agents.settings import (
     AgentRunSettings,
@@ -27,7 +29,7 @@ from hopeit_agents.example_agents.tools import ExpertAgentDeps
 MAIN_SETTINGS_KEY = "main_agent"
 EXPERT_SETTINGS_KEY = "expert_agent"
 
-__steps__ = ["run"]
+__steps__ = ["prepare_agents", "plan_expression", "solve_expression", "build_response"]
 
 __api__ = event_api(
     summary="Solve a natural-language integer addition task through agent delegation",
@@ -36,88 +38,143 @@ __api__ = event_api(
 )
 
 
-@dataclass(frozen=True)
-class MainAgentDeps:
-    """Dependencies required by the main agent's delegation tool."""
+@dataobject
+@dataclass
+class ExpressionPlan:
+    """Typed output passed from the main agent to the expert agent."""
 
-    expert_model: Model
+    expression: str
+
+
+@dataobject
+@dataclass
+class PreparedAgents:
+    """Serializable configuration for the main-agent planning step."""
+
+    request: AgentRequest
+    model_settings: AgentModelSettings
+    main_settings: AgentRunSettings
+    expert_settings: AgentRunSettings
+    main_instructions: str
     expert_instructions: str
-    expert_deps: ExpertAgentDeps
 
 
-async def solve_expression(
-    ctx: RunContext[MainAgentDeps],
-    expression: str,
-) -> ExpertAgentResults:
-    """Delegate an integer sum expression to the expert agent."""
-    result = await run_expert_agent(
-        expression,
-        model=ctx.deps.expert_model,
-        instructions=ctx.deps.expert_instructions,
-        deps=ctx.deps.expert_deps,
-        limits=ctx.usage_limits,
-        usage=ctx.usage,
-        conversation_id=ctx.conversation_id,
-    )
-    return result.output
+@dataobject
+@dataclass
+class ExpertAgentTask:
+    """Typed hand-off from the main agent step to the expert agent step."""
+
+    expression: str
+    conversation_id: str
+    metadata: dict[str, Any]
+    main_history_json: str
+    main_usage: AgentUsage
+    model_settings: AgentModelSettings
+    expert_settings: AgentRunSettings
+    expert_instructions: str
 
 
-def create_main_agent(model: Model, instructions: str) -> Agent[MainAgentDeps, str]:
-    """Create the main agent with one explicit agent-delegation tool."""
+@dataobject
+@dataclass
+class MainAgentExecution:
+    """Serializable result passed to the final response step."""
+
+    expression: str
+    conversation_id: str
+    results: ExpertAgentResults
+    history_json: str
+    usage: AgentUsage
+
+
+def create_main_agent(model: Model, instructions: str) -> Agent[None, ExpressionPlan]:
+    """Create the main agent that produces a typed expert-agent task."""
     return Agent(
         model,
         name="main_agent",
-        deps_type=MainAgentDeps,
+        output_type=ExpressionPlan,
         instructions=instructions,
-        tools=[solve_expression],
     )
 
 
-async def run_main_agent(
-    user_message: str,
-    *,
-    main_model: Model,
-    expert_model: Model,
-    main_instructions: str,
-    expert_instructions: str,
-    expert_deps: ExpertAgentDeps | None = None,
-    limits: UsageLimits | None = None,
-    conversation_id: str | None = None,
-    metadata: dict[str, Any] | None = None,
-) -> AgentRunResult[str]:
-    """Run the main agent and its in-process expert delegation."""
-    agent = create_main_agent(main_model, main_instructions)
-    return await agent.run(
-        user_message,
-        deps=MainAgentDeps(
-            expert_model=expert_model,
-            expert_instructions=expert_instructions,
-            expert_deps=expert_deps or ExpertAgentDeps(),
-        ),
-        usage_limits=limits,
-        conversation_id=conversation_id,
-        metadata=metadata,
-    )
-
-
-async def run(payload: AgentRequest, context: EventContext) -> AgentResponse:
-    """Expose the main agent as a Hopeit HTTP event."""
-    model_settings = context.settings(key=SETTINGS_KEY, datatype=AgentModelSettings)
+async def prepare_agents(payload: AgentRequest, context: EventContext) -> PreparedAgents:
+    """Resolve both agents' settings before executing the workflow."""
     main_settings = context.settings(key=MAIN_SETTINGS_KEY, datatype=AgentRunSettings)
     expert_settings = context.settings(key=EXPERT_SETTINGS_KEY, datatype=AgentRunSettings)
-    result = await run_main_agent(
-        payload.user_message,
-        main_model=build_agent_model(model_settings),
-        expert_model=build_agent_model(model_settings),
+    return PreparedAgents(
+        request=payload,
+        model_settings=context.settings(key=SETTINGS_KEY, datatype=AgentModelSettings),
+        main_settings=main_settings,
+        expert_settings=expert_settings,
         main_instructions=load_instructions(main_settings),
         expert_instructions=load_instructions(expert_settings),
-        limits=usage_limits(main_settings),
+    )
+
+
+async def plan_expression(
+    payload: PreparedAgents,
+    context: EventContext,
+) -> ExpertAgentTask:
+    """Run the main agent and pass its typed expression to the expert step."""
+    agent = create_main_agent(
+        build_agent_model(payload.model_settings),
+        payload.main_instructions,
+    )
+    result = await agent.run(
+        payload.request.user_message,
+        usage_limits=usage_limits(payload.main_settings),
+        conversation_id=payload.request.conversation_id,
+        metadata=payload.request.metadata,
+    )
+    return ExpertAgentTask(
+        expression=result.output.expression,
+        conversation_id=result.conversation_id,
+        metadata=payload.request.metadata,
+        main_history_json=result.all_messages_json().decode("utf-8"),
+        main_usage=agent_usage(result.usage),
+        model_settings=payload.model_settings,
+        expert_settings=payload.expert_settings,
+        expert_instructions=payload.expert_instructions,
+    )
+
+
+async def solve_expression(
+    payload: ExpertAgentTask,
+    context: EventContext,
+) -> MainAgentExecution:
+    """Run the expert agent as the next explicit Hopeit workflow step."""
+    agent = create_expert_agent(
+        build_agent_model(payload.model_settings),
+        payload.expert_instructions,
+    )
+    result = await agent.run(
+        payload.expression,
+        deps=ExpertAgentDeps(),
+        usage_limits=usage_limits(payload.expert_settings),
         conversation_id=payload.conversation_id,
         metadata=payload.metadata,
     )
-    return AgentResponse(
+    history = [
+        *json.loads(payload.main_history_json),
+        *json.loads(result.all_messages_json()),
+    ]
+    return MainAgentExecution(
+        expression=payload.expression,
         conversation_id=result.conversation_id,
-        output=result.output,
-        history_json=result.all_messages_json().decode("utf-8"),
-        usage=agent_usage(result.usage),
+        results=result.output,
+        history_json=json.dumps(history),
+        usage=combine_usage(payload.main_usage, agent_usage(result.usage)),
+    )
+
+
+async def build_response(
+    payload: MainAgentExecution,
+    context: EventContext,
+) -> AgentResponse:
+    """Render the typed expert result as the public main-agent response."""
+    values = ", ".join(f"{item.expr} = {item.value}" for item in payload.results.expr_values)
+    return AgentResponse(
+        conversation_id=payload.conversation_id,
+        output=f"Expression `{payload.expression}` evaluated to: {values}",
+        history_json=payload.history_json,
+        usage=payload.usage,
     )
