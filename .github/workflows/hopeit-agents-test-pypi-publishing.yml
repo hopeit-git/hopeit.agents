@@ -1,8 +1,11 @@
-name: MCP Plugins Test PyPI Publishing
+name: hopeit-agents TestPyPI Publishing
 
 on:
   release:
-    types: [unpublished, prereleased]
+    types: [prereleased]
+
+permissions:
+  contents: read
 
 jobs:
   upload:
@@ -25,42 +28,10 @@ jobs:
       - name: Test
         run: make test
 
-      - name: Build Agent Toolkit plugin
-        run: make dist-plugin PLUGINFOLDER=plugins/agents/agent-toolkit
+      - name: Build hopeit-agents
+        run: make dist-plugin PLUGINFOLDER=plugins/agents
 
-      - name: Build Model client plugin
-        run: make dist-plugin PLUGINFOLDER=plugins/agents/model-client
-
-      - name: Build MCP server plugin
-        run: make dist-plugin PLUGINFOLDER=plugins/mcp/mcp-server
-
-      - name: Build MCP client plugin
-        run: make dist-plugin PLUGINFOLDER=plugins/mcp/mcp-client
-
-      - name: Build Agent Skills plugin
-        run: make dist-plugin PLUGINFOLDER=plugins/agents/skills
-
-      - name: Publish Agent Toolkit plugin to Test PyPI
+      - name: Publish hopeit-agents to TestPyPI
         env:
           TEST_PYPI_API_TOKEN: ${{ secrets.TEST_PYPI_API_TOKEN }}
-        run: make publish-plugin-pypi-test PLUGINFOLDER=plugins/agents/agent-toolkit
-
-      - name: Publish Model Client plugin to Test PyPI
-        env:
-          TEST_PYPI_API_TOKEN: ${{ secrets.TEST_PYPI_API_TOKEN }}
-        run: make publish-plugin-pypi-test PLUGINFOLDER=plugins/agents/model-client
-
-      - name: Publish MCP server plugin to Test PyPI
-        env:
-          TEST_PYPI_API_TOKEN: ${{ secrets.TEST_PYPI_API_TOKEN }}
-        run: make publish-plugin-pypi-test PLUGINFOLDER=plugins/mcp/mcp-server
-
-      - name: Publish MCP client plugin to Test PyPI
-        env:
-          TEST_PYPI_API_TOKEN: ${{ secrets.TEST_PYPI_API_TOKEN }}
-        run: make publish-plugin-pypi-test PLUGINFOLDER=plugins/mcp/mcp-client
-
-      - name: Publish Agent Skills plugin to Test PyPI
-        env:
-          TEST_PYPI_API_TOKEN: ${{ secrets.TEST_PYPI_API_TOKEN }}
-        run: make publish-plugin-pypi-test PLUGINFOLDER=plugins/agents/skills
+        run: make publish-plugin-pypi-test PLUGINFOLDER=plugins/agents

@@ -1,11 +1,15 @@
-name: MCP Plugins PyPI Publishing
+name: hopeit-agents PyPI Publishing
 
 on:
   release:
     types: [published]
 
+permissions:
+  contents: read
+
 jobs:
   upload:
+    if: ${{ !github.event.release.prerelease }}
     runs-on: ubuntu-latest
 
     steps:
@@ -25,42 +29,10 @@ jobs:
       - name: Test
         run: make test
 
-      - name: Build Agent Toolkit plugin
-        run: make dist-plugin PLUGINFOLDER=plugins/agents/agent-toolkit
+      - name: Build hopeit-agents
+        run: make dist-plugin PLUGINFOLDER=plugins/agents
 
-      - name: Build Model client plugin
-        run: make dist-plugin PLUGINFOLDER=plugins/agents/model-client
-
-      - name: Build MCP server plugin
-        run: make dist-plugin PLUGINFOLDER=plugins/mcp/mcp-server
-
-      - name: Build MCP client plugin
-        run: make dist-plugin PLUGINFOLDER=plugins/mcp/mcp-client
-
-      - name: Build Agent Skills plugin
-        run: make dist-plugin PLUGINFOLDER=plugins/agents/skills
-
-      - name: Publish Agent Toolkit plugin to PyPI
+      - name: Publish hopeit-agents to PyPI
         env:
           PYPI_API_TOKEN: ${{ secrets.PYPI_API_TOKEN }}
-        run: make publish-plugin-pypi PLUGINFOLDER=plugins/agents/agent-toolkit
-
-      - name: Publish Model Client plugin to PyPI
-        env:
-          PYPI_API_TOKEN: ${{ secrets.PYPI_API_TOKEN }}
-        run: make publish-plugin-pypi PLUGINFOLDER=plugins/agents/model-client
-
-      - name: Publish MCP server plugin to PyPI
-        env:
-          PYPI_API_TOKEN: ${{ secrets.PYPI_API_TOKEN }}
-        run: make publish-plugin-pypi PLUGINFOLDER=plugins/mcp/mcp-server
-
-      - name: Publish MCP client plugin to PyPI
-        env:
-          PYPI_API_TOKEN: ${{ secrets.PYPI_API_TOKEN }}
-        run: make publish-plugin-pypi PLUGINFOLDER=plugins/mcp/mcp-client
-
-      - name: Publish Agent Skills plugin to PyPI
-        env:
-          PYPI_API_TOKEN: ${{ secrets.PYPI_API_TOKEN }}
-        run: make publish-plugin-pypi PLUGINFOLDER=plugins/agents/skills
+        run: make publish-plugin-pypi PLUGINFOLDER=plugins/agents

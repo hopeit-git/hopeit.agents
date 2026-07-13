@@ -1,4 +1,4 @@
-# This workflow will install hopeit.engine dev Python dependencies, run tests in multiple version of Python
+# Validate the active hopeit-agents project and example across supported Python versions.
 
 name: hopeit.agents CI
 

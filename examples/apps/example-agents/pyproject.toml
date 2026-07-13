@@ -1,6 +1,6 @@
 [project]
 name = "hopeit-agents-example-agents"
-version = "0.1.1b2"
+version = "0.2.0b1"
 
 description = "Example agents implemented with hopeit.engine and Pydantic AI"
 dynamic = ["readme"]

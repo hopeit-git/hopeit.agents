@@ -1,6 +1,6 @@
 [project]
 name = "hopeit-agents"
-version = "0.1.1b2"
+version = "0.2.0b1"
 requires-python = ">=3.11"
 
 description = "Hopeit integration for building agentic APIs"

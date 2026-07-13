@@ -702,7 +702,7 @@ wheels = [
 
 [[package]]
 name = "hopeit-agents"
-version = "0.1.1b2"
+version = "0.2.0b1"
 source = { directory = "plugins/agents" }
 dependencies = [
     { name = "hopeit-engine" },
@@ -717,7 +717,7 @@ requires-dist = [
 
 [[package]]
 name = "hopeit-agents-example-agents"
-version = "0.1.1b2"
+version = "0.2.0b1"
 source = { directory = "examples/apps/example-agents" }
 dependencies = [
     { name = "hopeit-agents" },
@@ -734,7 +734,7 @@ requires-dist = [
 
 [[package]]
 name = "hopeit-agents-workspace"
-version = "0.1.1"
+version = "0.2.0b1"
 source = { virtual = "." }
 dependencies = [
     { name = "hopeit-agents" },
