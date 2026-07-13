@@ -107,10 +107,13 @@ provided more completely by Pydantic AI.
 ```mermaid
 flowchart LR
     U[User] --> H[hopeit.engine HTTP event]
-    H --> P[prepare_agents step]
+    H --> P[prepare_agent step]
     P --> M[plan_expression: main agent]
-    M --> E[solve_expression: expert agent]
-    E --> B[build_response step]
+    M --> A[call_expert_agent: app_call]
+    A --> EH[Expert Hopeit HTTP event]
+    EH --> E[Pydantic AI expert agent]
+    E --> ER[ExpertAgentResponse]
+    ER --> B[main build_response step]
     E -->|inline function tools| R[generate random]
     E -->|inline function tools| S[sum two numbers]
 
@@ -123,10 +126,10 @@ flowchart LR
     E --> OT
 ```
 
-There is one deployable example application and no MCP process. Agent-to-agent hand-off is made
-explicit through the main event's sequential Hopeit `__steps__` workflow. The expert remains a
-separately testable Python component and standalone HTTP workflow; the main event does not make a
-network round trip to it.
+There is one example application containing two independently addressable agent events and no MCP
+process. Agent-to-agent hand-off is explicit in the main event's sequential Hopeit `__steps__`
+workflow. The main event invokes the expert event through `hopeit.app.client.app_call`, preserving
+the application boundary instead of importing or constructing the expert agent.
 
 ### Proposed active example layout
 
@@ -168,8 +171,8 @@ projections inside the example app.
 | prompt-generated JSON schemas | `output_type=ExpertAgentResults` | Typed validation and retries |
 | manual iteration limits | Pydantic AI `UsageLimits(request_limit=...)` | Explicit run limit |
 | custom provider client settings | `hopeit-agents` model settings/factory | Provider changes stay in config |
-| MCP agent-to-agent call | Sequential Hopeit steps with typed dataobject hand-off | Default example path |
-| real remote agent boundary, if later needed | `hopeit.app.client.app_call` | Use only across deployable apps |
+| MCP agent-to-agent call | Hopeit apps-client call between independent agent events | Default example path |
+| agent event boundary | `hopeit.app.client.app_call` | Main-to-expert example path |
 
 ## Shared Plugin Decision
 
@@ -402,16 +405,16 @@ Use a sequential Hopeit workflow:
 
 1. Declare `__steps__` for configuration preparation, expression planning, expert execution, and
    response construction.
-2. Have the main agent return a typed expression plan. Pass it to the expert step in a serializable
-   Hopeit dataobject rather than hiding the second agent run inside a model tool.
-3. Run the expert agent with inline random and sum tools. Combine both runs' native histories and
-   usage projections in the workflow result.
-4. Build the final human-readable response deterministically from the expert's typed output.
-5. Use a real `app_call` only in an additional example/test that deliberately demonstrates a
-   separately deployed expert application. MCP must not return as the transport.
+2. Have the main agent return a typed expression plan. Pass it to an apps-client step in a
+   serializable Hopeit dataobject.
+3. Use `app_call` to invoke the independent `agents.expert_agent` event with an `AgentRequest` and
+   receive its typed `ExpertAgentResponse`.
+4. Run the expert agent with inline random and sum tools in its own workflow. Combine both runs'
+   native histories and usage projections in the main workflow result.
+5. Build the final human-readable response deterministically from the expert's typed output.
 
-This preserves multi-agent composition while showcasing Hopeit Engine's step model. It avoids
-local HTTP/MCP routers and keeps the expert component reusable by its standalone workflow.
+This preserves multi-agent composition while showcasing Hopeit Engine's step and app-client
+models. It avoids MCP and keeps the expert component independently callable and deployable.
 
 ### Phase 6: Remove the redundant skills example
 
@@ -589,7 +592,7 @@ Live-provider tests must be opt-in and excluded from default `make test`.
 2. **PR 2 — Expert agent**
    - Replace its custom loop and MCP tools with Pydantic AI typed output and inline tools.
 3. **PR 3 — Main agent and skills removal**
-   - Add sequential Hopeit steps for in-process agent-to-agent hand-off.
+   - Add sequential Hopeit steps and an apps-client agent-to-agent call.
    - Remove the redundant skills agent and its custom protocol.
 4. **PR 4 — Active workspace cutover**
    - Remove deprecated packages from default dependencies/targets.
@@ -613,7 +616,7 @@ but it must not block replacement of MCP and the custom agent loop.
 - Default installation and lock resolution for active packages do not install the MCP SDK.
 - The main and expert Hopeit events use Pydantic AI.
 - Random and sum tools execute in process and have typed, model-visible schemas.
-- Main-to-expert hand-off uses sequential Hopeit steps with no MCP or local HTTP hop.
+- Main-to-expert hand-off uses `hopeit.app.client.app_call` with no MCP dependency.
 - The expert returns `ExpertAgentResults` through Pydantic AI structured output.
 - `agent_model.provider = "openai"` and `agent_model.provider = "ollama"` both construct and run
   with Pydantic AI 2.9.0; switching requires settings/environment changes only.

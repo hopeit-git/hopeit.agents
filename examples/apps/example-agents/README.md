@@ -5,11 +5,15 @@ It does not use MCP or the deprecated agent libraries.
 
 ```text
 main-agent HTTP request
-  -> prepare_agents
+  -> prepare_agent
   -> plan_expression       (main agent)
-  -> solve_expression      (expert agent)
-       -> generate_random  (tool)
-       -> sum_two_numbers  (tool)
+  -> call_expert_agent     (Hopeit app_call over HTTP)
+       -> expert-agent HTTP workflow
+            -> prepare_agent
+            -> execute_agent
+                 -> generate_random  (tool)
+                 -> sum_two_numbers  (tool)
+            -> build_response
   -> build_response
 ```
 
@@ -19,9 +23,10 @@ main-agent HTTP request
 `__steps__` list names four functions. Each function receives the previous function's typed output
 and returns the input for the next one:
 
-- `prepare_agents` resolves model configuration, prompts, and limits.
+- `prepare_agent` resolves the main agent's model configuration, prompt, and limits.
 - `plan_expression` asks the main agent for a typed `ExpressionPlan`.
-- `solve_expression` passes that expression to the expert agent, which calls the math tools.
+- `call_expert_agent` sends that expression to the independent expert event with
+  `hopeit.app.client.app_call`.
 - `build_response` converts the typed result into the public response.
 
 `agents.expert_agent` exposes the specialist independently with its own three-step workflow:
@@ -29,16 +34,17 @@ and returns the input for the next one:
 before it crosses the HTTP boundary.
 
 Intermediate workflow objects are Hopeit dataobjects, so the engine can copy and route each step's
-payload. Agent instances and provider clients are created only inside execution steps and are not
-passed through the workflow.
+payload. The main module never imports or creates the expert agent. The apps client serializes an
+`AgentRequest`, invokes the expert event through its configured HTTP route, and deserializes an
+`ExpertAgentResponse`.
 
 The former skills agent was removed because it duplicated the main/expert tool-call behavior
 without teaching a distinct application pattern.
 
 ## Tools
 
-`solve_expression` is a Hopeit step, not a model tool. It is the explicit agent-to-agent boundary
-and runs in the same event process, with no HTTP or MCP round trip.
+`call_expert_agent` is the explicit agent-to-agent boundary. It uses the Hopeit apps client instead
+of importing the expert implementation, so both agents retain independent event workflows.
 
 `generate_random(minimum, maximum)` is registered on the expert agent. Its random-number source
 is supplied through request-scoped dependencies, which makes tests deterministic.
@@ -76,6 +82,11 @@ uv run --no-sync hopeit_server run \
 
 The Ollama configuration expects its OpenAI-compatible endpoint at
 `http://localhost:11434/v1`. No Ollama API key is required by default.
+
+Both app configurations define the `expert-agent` connection as
+`http://127.0.0.1:8020`. Change its `connection_str` when the expert event is deployed on another
+Hopeit server. The example uses unsecured HTTP to match `dev-noauth.json`; production deployments
+should configure the apps-client authentication and TLS settings appropriately.
 
 OpenAPI documentation is available at `http://127.0.0.1:8020/api/docs`. A main-agent request is:
 

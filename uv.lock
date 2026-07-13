@@ -721,14 +721,14 @@ version = "0.2.0b1"
 source = { directory = "examples/apps/example-agents" }
 dependencies = [
     { name = "hopeit-agents" },
-    { name = "hopeit-engine" },
+    { name = "hopeit-engine", extra = ["apps-client"] },
     { name = "pydantic-ai-slim", extra = ["openai"] },
 ]
 
 [package.metadata]
 requires-dist = [
     { name = "hopeit-agents" },
-    { name = "hopeit-engine", specifier = ">=0.29.0" },
+    { name = "hopeit-engine", extras = ["apps-client"], specifier = ">=0.29.0" },
     { name = "pydantic-ai-slim", extras = ["openai"], specifier = ">=2.9,<3" },
 ]
 
@@ -766,6 +766,18 @@ dev = [
 ]
 
 [[package]]
+name = "hopeit-apps-client"
+version = "0.29.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "hopeit-engine" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/7d/e4/7577cfaa1b600f718b8d8e100529cea333fe2fa8cbfdd25ecf41871512e7/hopeit_apps_client-0.29.0.tar.gz", hash = "sha256:6a000b2de10e3273c0ae75c2578fa828309e5d350aef0715afca434eec81e8ac", size = 8656, upload-time = "2026-02-13T16:57:58.863Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/c3/94/673f970ae26784376628243941484e3af584e7a492d64a35a97d461350d9/hopeit_apps_client-0.29.0-py3-none-any.whl", hash = "sha256:09478f2f55b4c36eb7b00b2ecbcf8d44180f2987c3cd3558739e73a3ddbee849", size = 7694, upload-time = "2026-02-13T16:57:58.014Z" },
+]
+
+[[package]]
 name = "hopeit-engine"
 version = "0.29.0"
 source = { registry = "https://pypi.org/simple" }
@@ -785,6 +797,11 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/73/fb/7735b7f8845d91319327aa6b1cb5b6eb64cd1cba62bbc29ddded8a5ff442/hopeit_engine-0.29.0.tar.gz", hash = "sha256:c94bcb1b12ec1cf52127deb667d3d5bba267ac18e7550f096570594dc3dfe276", size = 77479, upload-time = "2026-02-13T16:57:44.946Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/a0/c3/d456a730fa28dfd430d12586899a5e22f0b5b6779b6c8ab653813259fce8/hopeit_engine-0.29.0-py3-none-any.whl", hash = "sha256:832d3724b4f868c7105a1e4204aa703b642e06b1c68010ed11f1f54a9cfb8367", size = 90944, upload-time = "2026-02-13T16:57:43.907Z" },
+]
+
+[package.optional-dependencies]
+apps-client = [
+    { name = "hopeit-apps-client" },
 ]
 
 [[package]]

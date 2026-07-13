@@ -1,20 +1,21 @@
 """Sequential Hopeit workflow coordinating the main and expert agents."""
 
 import json
-from typing import Any
+from typing import Any, cast
 
 from hopeit.app.api import event_api
+from hopeit.app.client import app_call
 from hopeit.app.context import EventContext
 from hopeit.dataobjects import dataclass, dataobject
 from pydantic_ai import Agent
 from pydantic_ai.models import Model
 
 from hopeit_agents.agent_model import SETTINGS_KEY, AgentModelSettings, build_agent_model
-from hopeit_agents.example_agents.agents.expert_agent import create_expert_agent
 from hopeit_agents.example_agents.models import (
     AgentRequest,
     AgentResponse,
     AgentUsage,
+    ExpertAgentResponse,
     ExpertAgentResults,
     agent_usage,
     combine_usage,
@@ -24,12 +25,12 @@ from hopeit_agents.example_agents.settings import (
     load_instructions,
     usage_limits,
 )
-from hopeit_agents.example_agents.tools import ExpertAgentDeps
 
 MAIN_SETTINGS_KEY = "main_agent"
-EXPERT_SETTINGS_KEY = "expert_agent"
+EXPERT_AGENT_CONNECTION = "expert-agent"
+EXPERT_AGENT_EVENT = "agents.expert_agent"
 
-__steps__ = ["prepare_agents", "plan_expression", "solve_expression", "build_response"]
+__steps__ = ["prepare_agent", "plan_expression", "call_expert_agent", "build_response"]
 
 __api__ = event_api(
     summary="Solve a natural-language integer addition task through agent delegation",
@@ -48,15 +49,13 @@ class ExpressionPlan:
 
 @dataobject
 @dataclass
-class PreparedAgents:
+class PreparedMainAgent:
     """Serializable configuration for the main-agent planning step."""
 
     request: AgentRequest
     model_settings: AgentModelSettings
     main_settings: AgentRunSettings
-    expert_settings: AgentRunSettings
     main_instructions: str
-    expert_instructions: str
 
 
 @dataobject
@@ -69,9 +68,6 @@ class ExpertAgentTask:
     metadata: dict[str, Any]
     main_history_json: str
     main_usage: AgentUsage
-    model_settings: AgentModelSettings
-    expert_settings: AgentRunSettings
-    expert_instructions: str
 
 
 @dataobject
@@ -96,22 +92,19 @@ def create_main_agent(model: Model, instructions: str) -> Agent[None, Expression
     )
 
 
-async def prepare_agents(payload: AgentRequest, context: EventContext) -> PreparedAgents:
-    """Resolve both agents' settings before executing the workflow."""
+async def prepare_agent(payload: AgentRequest, context: EventContext) -> PreparedMainAgent:
+    """Resolve the main agent's settings before executing its workflow."""
     main_settings = context.settings(key=MAIN_SETTINGS_KEY, datatype=AgentRunSettings)
-    expert_settings = context.settings(key=EXPERT_SETTINGS_KEY, datatype=AgentRunSettings)
-    return PreparedAgents(
+    return PreparedMainAgent(
         request=payload,
         model_settings=context.settings(key=SETTINGS_KEY, datatype=AgentModelSettings),
         main_settings=main_settings,
-        expert_settings=expert_settings,
         main_instructions=load_instructions(main_settings),
-        expert_instructions=load_instructions(expert_settings),
     )
 
 
 async def plan_expression(
-    payload: PreparedAgents,
+    payload: PreparedMainAgent,
     context: EventContext,
 ) -> ExpertAgentTask:
     """Run the main agent and pass its typed expression to the expert step."""
@@ -131,38 +124,38 @@ async def plan_expression(
         metadata=payload.request.metadata,
         main_history_json=result.all_messages_json().decode("utf-8"),
         main_usage=agent_usage(result.usage),
-        model_settings=payload.model_settings,
-        expert_settings=payload.expert_settings,
-        expert_instructions=payload.expert_instructions,
     )
 
 
-async def solve_expression(
+async def call_expert_agent(
     payload: ExpertAgentTask,
     context: EventContext,
 ) -> MainAgentExecution:
-    """Run the expert agent as the next explicit Hopeit workflow step."""
-    agent = create_expert_agent(
-        build_agent_model(payload.model_settings),
-        payload.expert_instructions,
-    )
-    result = await agent.run(
-        payload.expression,
-        deps=ExpertAgentDeps(),
-        usage_limits=usage_limits(payload.expert_settings),
-        conversation_id=payload.conversation_id,
-        metadata=payload.metadata,
+    """Invoke the independently addressable expert-agent Hopeit event."""
+    result = cast(
+        ExpertAgentResponse,
+        await app_call(
+            EXPERT_AGENT_CONNECTION,
+            event=EXPERT_AGENT_EVENT,
+            datatype=ExpertAgentResponse,
+            payload=AgentRequest(
+                user_message=payload.expression,
+                conversation_id=payload.conversation_id,
+                metadata=payload.metadata,
+            ),
+            context=context,
+        ),
     )
     history = [
         *json.loads(payload.main_history_json),
-        *json.loads(result.all_messages_json()),
+        *json.loads(result.history_json),
     ]
     return MainAgentExecution(
         expression=payload.expression,
         conversation_id=result.conversation_id,
-        results=result.output,
+        results=result.results,
         history_json=json.dumps(history),
-        usage=combine_usage(payload.main_usage, agent_usage(result.usage)),
+        usage=combine_usage(payload.main_usage, result.usage),
     )
 
 

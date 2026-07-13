@@ -6,7 +6,19 @@
   "engine": {
     "import_modules": ["hopeit_agents.example_agents"]
   },
+  "app_connections": {
+    "expert-agent": {
+      "name": "hopeit-agents-example-agents",
+      "version": "0.1",
+      "client": "hopeit.apps_client.AppsClient"
+    }
+  },
   "settings": {
+    "expert-agent": {
+      "connection_str": "http://127.0.0.1:8020",
+      "auth_strategy": "UNSECURED",
+      "ssl": false
+    },
     "agent_model": {
       "provider": "ollama",
       "model_name": "${OLLAMA_MODEL_NAME}",
@@ -33,7 +45,14 @@
   "events": {
     "agents.main_agent": {
       "type": "POST",
-      "setting_keys": ["agent_model", "main_agent", "expert_agent"]
+      "setting_keys": ["agent_model", "main_agent"],
+      "connections": [
+        {
+          "app_connection": "expert-agent",
+          "event": "agents.expert_agent",
+          "type": "POST"
+        }
+      ]
     },
     "agents.expert_agent": {
       "type": "POST",
