@@ -1,1 +1,1 @@
-"""Tools exposed by the example tool plugin."""
+"""Main and expert agents exposed as Hopeit events."""

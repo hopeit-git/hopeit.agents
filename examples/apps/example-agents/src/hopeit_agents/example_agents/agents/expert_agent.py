@@ -1,125 +1,96 @@
-"""Agent that can receive expressions with numbers and variables, creates random numbers
-for the variables and solve sums
-"""
+"""Structured expert agent with application-local random and addition tools."""
+
+from typing import Any
 
 from hopeit.app.api import event_api
 from hopeit.app.context import EventContext
-from hopeit.app.logger import app_extra_logger
-from hopeit.dataobjects.payload import Payload
+from pydantic_ai import Agent, UsageLimits
+from pydantic_ai.models import Model
+from pydantic_ai.run import AgentRunResult
+from pydantic_ai.usage import RunUsage
 
-from hopeit_agents.agent_toolkit.agents.agent_config import create_agent_config
-from hopeit_agents.agent_toolkit.agents.prompts import render_prompt
-from hopeit_agents.agent_toolkit.app.steps.agent_loop import (
-    AgentLoopConfig,
-    AgentLoopPayload,
-    AgentLoopResult,
-    agent_with_tools_loop,
-)
-from hopeit_agents.agent_toolkit.mcp.agent_tools import (
-    resolve_tools,
-    tool_descriptions,
-)
-from hopeit_agents.agent_toolkit.settings import AgentSettings
+from hopeit_agents.agent_model import SETTINGS_KEY, AgentModelSettings, build_agent_model
 from hopeit_agents.example_agents.models import (
-    ExpertAgentRequest,
+    AgentRequest,
     ExpertAgentResponse,
     ExpertAgentResults,
+    agent_usage,
 )
-from hopeit_agents.mcp_client.models import MCPClientConfig
-from hopeit_agents.mcp_server.tools.api import _datatype_schema, event_tool_api
-from hopeit_agents.model_client.conversation import build_conversation
-from hopeit_agents.model_client.models import (
-    CompletionConfig,
-    Role,
+from hopeit_agents.example_agents.settings import (
+    AgentRunSettings,
+    load_instructions,
+    usage_limits,
+)
+from hopeit_agents.example_agents.tools import (
+    ExpertAgentDeps,
+    generate_random,
+    sum_two_numbers,
 )
 
-logger, extra = app_extra_logger()
+EXPERT_SETTINGS_KEY = "expert_agent"
 
-__steps__ = ["init_conversation", agent_with_tools_loop.__name__, "result"]
+__steps__ = ["run"]
 
 __api__ = event_api(
-    summary="example-agents: expert agent that can generate random number an solve sums",
-    payload=(ExpertAgentRequest, "Agent task request"),
-    responses={200: (ExpertAgentResponse, "Aggregated agent response")},
-)
-
-__mcp__ = event_tool_api(
-    payload=(ExpertAgentRequest, "Agent task description"),
-    response=(ExpertAgentResponse, "Aggregated agent response"),
+    summary="Solve integer sum expressions with generated values and typed tools",
+    payload=(AgentRequest, "Expression-solving task"),
+    responses={200: (ExpertAgentResponse, "Structured expression results")},
 )
 
 
-async def init_conversation(payload: ExpertAgentRequest, context: EventContext) -> AgentLoopPayload:
-    """Prepare the expert agent conversation and tool configuration."""
-    agent_settings = context.settings(key="expert_agent_llm", datatype=AgentSettings)
-    mcp_settings = context.settings(key="mcp_client_example_tools", datatype=MCPClientConfig)
-
-    with open(agent_settings.system_prompt_template) as f:
-        system_prompt_template = f.read()
-    with open(agent_settings.tool_prompt_template) as f:
-        tool_prompt_template = f.read()
-
-    agent_config = create_agent_config(
-        name=agent_settings.agent_name,
-        prompt_template=system_prompt_template,
-        variables={},
-        enable_tools=True,
-        tools=agent_settings.allowed_tools,
-        tool_prompt_template=tool_prompt_template,
-    )
-    tools = await resolve_tools(
-        mcp_settings,
-        context,
-        agent_id=agent_config.key,
-        allowed_tools=agent_config.tools,
-    )
-    completion_config = CompletionConfig(available_tools=tools)
-    result_schema = _datatype_schema("", ExpertAgentResults)
-    conversation = build_conversation(
-        None,
-        message=payload.user_message,
-        system_prompt=render_prompt(
-            agent_config,
-            {
-                "expert_agent_result_schema": Payload.to_json(result_schema),
-                "tool_descriptions": tool_descriptions(
-                    tools, include_schemas=agent_settings.include_tool_schemas_in_prompt
-                ),
-            },
-            include_tools=agent_config.enable_tools,
-        ),
-    )
-    return AgentLoopPayload(
-        conversation=conversation,
-        user_context={},
-        completion_config=completion_config,
-        loop_config=AgentLoopConfig(max_iterations=10),
-        agent_settings=agent_settings,
-        mcp_settings=mcp_settings,
+def create_expert_agent(
+    model: Model,
+    instructions: str,
+) -> Agent[ExpertAgentDeps, ExpertAgentResults]:
+    """Create the expert agent independently of its configured model provider."""
+    return Agent(
+        model,
+        name="expert_agent",
+        deps_type=ExpertAgentDeps,
+        output_type=ExpertAgentResults,
+        instructions=instructions,
+        tools=[generate_random, sum_two_numbers],
     )
 
 
-async def result(payload: AgentLoopResult, context: EventContext) -> ExpertAgentResponse:
-    """Convert the last loop message into an expert agent response payload."""
-    try:
-        last_message = payload.conversation.messages[-1]
+async def run_expert_agent(
+    user_message: str,
+    *,
+    model: Model,
+    instructions: str,
+    deps: ExpertAgentDeps | None = None,
+    limits: UsageLimits | None = None,
+    usage: RunUsage | None = None,
+    conversation_id: str | None = None,
+    metadata: dict[str, Any] | None = None,
+) -> AgentRunResult[ExpertAgentResults]:
+    """Run the reusable expert-agent component."""
+    agent = create_expert_agent(model, instructions)
+    return await agent.run(
+        user_message,
+        deps=deps or ExpertAgentDeps(),
+        usage_limits=limits,
+        usage=usage,
+        conversation_id=conversation_id,
+        metadata=metadata,
+    )
 
-        response = ExpertAgentResponse(
-            conversation_id=payload.conversation.conversation_id,
-            results=Payload.from_json(last_message.content or "", datatype=ExpertAgentResults)
-            if last_message.role == Role.ASSISTANT
-            else None,
-            tool_calls=payload.tool_call_log,
-            error=str(last_message.content or "") if last_message.role == Role.SYSTEM else None,
-        )
 
-    except Exception as e:
-        response = ExpertAgentResponse(
-            conversation_id=payload.conversation.conversation_id,
-            results=None,
-            error=str(e),
-            assistant_message=last_message,
-            tool_calls=payload.tool_call_log,
-        )
-
-    return response
+async def run(payload: AgentRequest, context: EventContext) -> ExpertAgentResponse:
+    """Expose the expert runner as a standalone Hopeit HTTP event."""
+    model_settings = context.settings(key=SETTINGS_KEY, datatype=AgentModelSettings)
+    run_settings = context.settings(key=EXPERT_SETTINGS_KEY, datatype=AgentRunSettings)
+    result = await run_expert_agent(
+        payload.user_message,
+        model=build_agent_model(model_settings),
+        instructions=load_instructions(run_settings),
+        limits=usage_limits(run_settings),
+        conversation_id=payload.conversation_id,
+        metadata=payload.metadata,
+    )
+    return ExpertAgentResponse(
+        conversation_id=result.conversation_id,
+        results=result.output,
+        history_json=result.all_messages_json().decode("utf-8"),
+        usage=agent_usage(result.usage),
+    )

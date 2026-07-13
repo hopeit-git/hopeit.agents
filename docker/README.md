@@ -1,15 +1,18 @@
-# hopeit.agents Docker Quickstart
+# Example Agents Container
 
-Build the image from the project root:
-1. `docker compose build`
+The default image runs the migrated Hopeit example application on port `8020` with the OpenAI
+configuration.
 
-Import the catalog definition with the Docker MCP CLI:
-1. `docker mcp catalog import docker/mcp/catalogs/custom.yaml`
-   - The catalog registers under the alias `hopeit-agents` (from the YAML file).
+```bash
+docker build -f docker/Dockerfile -t hopeit-agents .
+docker run --rm -p 8020:8020 \
+  -e OPENAI_API_KEY \
+  -e OPENAI_MODEL_NAME \
+  hopeit-agents
+```
 
-Enable and run the server shipped with the image:
-- `docker mcp server enable hopeit-agents-mcp`
-- `docker mcp server ls`
-- `docker mcp gateway run`
+To use Ollama, make the Ollama server reachable from the container and override the final config
+argument with `examples/apps/example-agents/config/app-config-ollama.json`. Update its base URL for
+your Docker networking setup if Ollama is not available at `localhost` inside the container.
 
-The server may not appear in GUI lists, but it is active once enabled and available to MCP clients.
+The files under `docker/mcp` are legacy assets and are not used by the default image.

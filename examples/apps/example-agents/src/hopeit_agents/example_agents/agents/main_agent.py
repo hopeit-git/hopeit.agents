@@ -1,99 +1,123 @@
-"""Main agent event that coordinates the tool-enabled agent loop."""
+"""Main agent that delegates expression solving to the expert agent in process."""
+
+from dataclasses import dataclass
+from typing import Any
 
 from hopeit.app.api import event_api
 from hopeit.app.context import EventContext
-from hopeit.app.logger import app_extra_logger
+from pydantic_ai import Agent, RunContext, UsageLimits
+from pydantic_ai.models import Model
+from pydantic_ai.run import AgentRunResult
 
-from hopeit_agents.agent_toolkit.agents.agent_config import create_agent_config
-from hopeit_agents.agent_toolkit.agents.prompts import render_prompt
-from hopeit_agents.agent_toolkit.app.steps.agent_loop import (
-    AgentLoopConfig,
-    AgentLoopPayload,
-    AgentLoopResult,
-    agent_with_tools_loop,
+from hopeit_agents.agent_model import SETTINGS_KEY, AgentModelSettings, build_agent_model
+from hopeit_agents.example_agents.agents.expert_agent import run_expert_agent
+from hopeit_agents.example_agents.models import (
+    AgentRequest,
+    AgentResponse,
+    ExpertAgentResults,
+    agent_usage,
 )
-from hopeit_agents.agent_toolkit.mcp.agent_tools import (
-    resolve_tools,
-    tool_descriptions,
+from hopeit_agents.example_agents.settings import (
+    AgentRunSettings,
+    load_instructions,
+    usage_limits,
 )
-from hopeit_agents.agent_toolkit.settings import AgentSettings
-from hopeit_agents.example_agents.models import AgentRequest, AgentResponse
-from hopeit_agents.mcp_client.models import MCPClientConfig
-from hopeit_agents.model_client.conversation import build_conversation
-from hopeit_agents.model_client.models import CompletionConfig
+from hopeit_agents.example_agents.tools import ExpertAgentDeps
 
-logger, extra = app_extra_logger()
+MAIN_SETTINGS_KEY = "main_agent"
+EXPERT_SETTINGS_KEY = "expert_agent"
 
-
-__steps__ = ["init_conversation", agent_with_tools_loop.__name__, "result"]
-
+__steps__ = ["run"]
 
 __api__ = event_api(
-    summary="example-agents: main agent",
-    payload=(AgentRequest, "Agent task description"),
-    responses={200: (AgentResponse, "Aggregated agent response")},
+    summary="Solve a natural-language integer addition task through agent delegation",
+    payload=(AgentRequest, "Natural-language agent task"),
+    responses={200: (AgentResponse, "Main-agent answer and canonical history")},
 )
 
 
-async def init_conversation(payload: AgentRequest, context: EventContext) -> AgentLoopPayload:
-    """Build the initial conversation and tool prompt for the main agent."""
-    agent_settings: AgentSettings = context.settings(key="main_agent_llm", datatype=AgentSettings)
-    mcp_settings: MCPClientConfig = context.settings(
-        key="sub_agents_mcp_client", datatype=MCPClientConfig
+@dataclass(frozen=True)
+class MainAgentDeps:
+    """Dependencies required by the main agent's delegation tool."""
+
+    expert_model: Model
+    expert_instructions: str
+    expert_deps: ExpertAgentDeps
+
+
+async def solve_expression(
+    ctx: RunContext[MainAgentDeps],
+    expression: str,
+) -> ExpertAgentResults:
+    """Delegate an integer sum expression to the expert agent."""
+    result = await run_expert_agent(
+        expression,
+        model=ctx.deps.expert_model,
+        instructions=ctx.deps.expert_instructions,
+        deps=ctx.deps.expert_deps,
+        limits=ctx.usage_limits,
+        usage=ctx.usage,
+        conversation_id=ctx.conversation_id,
+    )
+    return result.output
+
+
+def create_main_agent(model: Model, instructions: str) -> Agent[MainAgentDeps, str]:
+    """Create the main agent with one explicit agent-delegation tool."""
+    return Agent(
+        model,
+        name="main_agent",
+        deps_type=MainAgentDeps,
+        instructions=instructions,
+        tools=[solve_expression],
     )
 
-    assert agent_settings.system_prompt_template, "missing system_prompt_template"
-    assert agent_settings.tool_prompt_template, "missing tool_prompt_template"
 
-    with open(agent_settings.system_prompt_template) as f:
-        system_prompt_template = f.read()
-    with open(agent_settings.tool_prompt_template) as f:
-        tool_prompt_template = f.read()
-
-    agent_config = create_agent_config(
-        name=agent_settings.agent_name,
-        prompt_template=system_prompt_template,
-        variables={},
-        enable_tools=True,
-        tools=agent_settings.allowed_tools,
-        tool_prompt_template=tool_prompt_template,
-    )
-    tools = await resolve_tools(
-        mcp_settings,
-        context,
-        agent_id=agent_config.key,
-        allowed_tools=agent_config.tools,
-    )
-    completion_config = CompletionConfig(available_tools=tools)
-    conversation = build_conversation(
-        existing=None,
-        message=payload.user_message,
-        system_prompt=render_prompt(
-            agent_config,
-            {
-                "tool_descriptions": tool_descriptions(
-                    tools, include_schemas=agent_settings.include_tool_schemas_in_prompt
-                )
-            },
-            include_tools=agent_config.enable_tools,
+async def run_main_agent(
+    user_message: str,
+    *,
+    main_model: Model,
+    expert_model: Model,
+    main_instructions: str,
+    expert_instructions: str,
+    expert_deps: ExpertAgentDeps | None = None,
+    limits: UsageLimits | None = None,
+    conversation_id: str | None = None,
+    metadata: dict[str, Any] | None = None,
+) -> AgentRunResult[str]:
+    """Run the main agent and its in-process expert delegation."""
+    agent = create_main_agent(main_model, main_instructions)
+    return await agent.run(
+        user_message,
+        deps=MainAgentDeps(
+            expert_model=expert_model,
+            expert_instructions=expert_instructions,
+            expert_deps=expert_deps or ExpertAgentDeps(),
         ),
-    )
-    return AgentLoopPayload(
-        conversation=conversation,
-        user_context={},
-        completion_config=completion_config,
-        loop_config=AgentLoopConfig(max_iterations=3),
-        agent_settings=agent_settings,
-        mcp_settings=mcp_settings,
+        usage_limits=limits,
+        conversation_id=conversation_id,
+        metadata=metadata,
     )
 
 
-async def result(payload: AgentLoopResult, context: EventContext) -> AgentResponse:
-    """Wrap the final loop message and tool call log into a response object."""
-    last_message = payload.conversation.messages[-1]
-    response = AgentResponse(
-        conversation=payload.conversation,
-        assistant_message=last_message,
-        tool_calls=payload.tool_call_log,
+async def run(payload: AgentRequest, context: EventContext) -> AgentResponse:
+    """Expose the main agent as a Hopeit HTTP event."""
+    model_settings = context.settings(key=SETTINGS_KEY, datatype=AgentModelSettings)
+    main_settings = context.settings(key=MAIN_SETTINGS_KEY, datatype=AgentRunSettings)
+    expert_settings = context.settings(key=EXPERT_SETTINGS_KEY, datatype=AgentRunSettings)
+    result = await run_main_agent(
+        payload.user_message,
+        main_model=build_agent_model(model_settings),
+        expert_model=build_agent_model(model_settings),
+        main_instructions=load_instructions(main_settings),
+        expert_instructions=load_instructions(expert_settings),
+        limits=usage_limits(main_settings),
+        conversation_id=payload.conversation_id,
+        metadata=payload.metadata,
     )
-    return response
+    return AgentResponse(
+        conversation_id=result.conversation_id,
+        output=result.output,
+        history_json=result.all_messages_json().decode("utf-8"),
+        usage=agent_usage(result.usage),
+    )

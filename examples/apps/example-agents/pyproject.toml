@@ -2,14 +2,13 @@
 name = "hopeit-agents-example-agents"
 version = "0.1.1b2"
 
-description = "Example MCP-compatible agents implemented as a hopeit.engine app"
+description = "Example agents implemented with hopeit.engine and Pydantic AI"
 dynamic = ["readme"]
 
 dependencies = [
     "hopeit.engine>=0.29.0",
-    "hopeit-agents.agent-toolkit",
-    "hopeit-agents.mcp-server",
-    "hopeit-agents.mcp-client",
+    "hopeit-agents",
+    "pydantic-ai-slim[openai]>=2.9,<3",
 ]
 
 license = "Apache-2.0"

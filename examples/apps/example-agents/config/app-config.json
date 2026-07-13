@@ -7,55 +7,21 @@
     "import_modules": ["hopeit_agents.example_agents"]
   },
   "settings": {
-    "model_client": {
-      "api_base": "${AGENT_MODEL_API_BASE}",
-      "api_key_env": "OPENAI_API_KEY",
-      "default_model": "${AGENT_MODEL_NAME}",
-      "deployment_name": "${AGENT_DEPLOYMENT_NAME}",
-      "api_version": "${AGENT_API_VERSION}",
-      "timeout_seconds": 120.0,
-      "extra_headers": {
-        "OpenAI-Beta": "assistants=v1"
-      }
+    "agent_model": {
+      "provider": "openai",
+      "model_name": "${OPENAI_MODEL_NAME}",
+      "base_url": null,
+      "api_key_env": "OPENAI_API_KEY"
     },
-    "sub_agents_mcp_client": {
-      "transport": "http",
-      "url": "http://127.0.0.1:8767/mcp",
-      "host": "127.0.0.1",
-      "port": 8767,
-      "tool_cache_seconds": 10.0,
-      "list_timeout_seconds": 5.0,
-      "call_timeout_seconds": 600.0
+    "main_agent": {
+      "instructions_path": "examples/apps/example-agents/config/agents/main-agent-prompt.md",
+      "request_limit": 12,
+      "tool_calls_limit": 20
     },
-    "mcp_client_example_tools": {
-      "transport": "http",
-      "url": "http://127.0.0.1:8765/mcp",
-      "host": "127.0.0.1",
-      "port": 8765,
-      "tool_cache_seconds": 10.0,
-      "list_timeout_seconds": 5.0,
-      "call_timeout_seconds": 60.0
-    },
-    "main_agent_llm": {
-      "agent_name": "main-agent",
-      "system_prompt_template": "examples/apps/example-agents/config/agents/main-agent-prompt.md",
-      "tool_prompt_template": "examples/apps/example-agents/config/agents/tool-call-prompt.md",
-      "enable_tools": true,
-      "include_tool_schemas_in_prompt": true
-    },
-    "expert_agent_llm": {
-      "agent_name": "expert-agent",
-      "system_prompt_template": "examples/apps/example-agents/config/agents/expert-agent-prompt.md",
-      "tool_prompt_template": "examples/apps/example-agents/config/agents/tool-call-prompt.md",
-      "enable_tools": true,
-      "include_tool_schemas_in_prompt": true
-    },
-    "skills_agent_llm": {
-      "agent_name": "skills-agent",
-      "system_prompt_template": "examples/apps/example-agents/config/agents/skills-agent-prompt.md",
-      "tool_prompt_template": "examples/apps/example-agents/config/agents/tool-call-prompt.md",
-      "enable_tools": true,
-      "include_tool_schemas_in_prompt": true
+    "expert_agent": {
+      "instructions_path": "examples/apps/example-agents/config/agents/expert-agent-prompt.md",
+      "request_limit": 10,
+      "tool_calls_limit": 20
     },
     "agents.main_agent": {
       "response_timeout": 600
@@ -67,28 +33,11 @@
   "events": {
     "agents.main_agent": {
       "type": "POST",
-      "setting_keys": [
-        "main_agent_llm",
-        "model_client",
-        "sub_agents_mcp_client"
-      ]
+      "setting_keys": ["agent_model", "main_agent", "expert_agent"]
     },
     "agents.expert_agent": {
       "type": "POST",
-      "setting_keys": [
-        "expert_agent_llm",
-        "model_client",
-        "mcp_client_example_tools"
-      ],
-      "group": "sub-agents"
-    },
-    "agents.skills_agent": {
-      "type": "POST",
-      "setting_keys": [
-        "skills_agent_llm",
-        "model_client"
-      ],
-      "group": "sub-agents"
+      "setting_keys": ["agent_model", "expert_agent"]
     }
   }
 }

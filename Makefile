@@ -1,4 +1,4 @@
-.PHONY: env clean-env deps format lint test publish-plugin-pypi publish-plugin-pypi-test
+.PHONY: env clean-env deps legacy-deps format lint test lint-legacy test-legacy publish-plugin-pypi publish-plugin-pypi-test
 
 PYTHONVERSION ?= 3.12
 
@@ -6,24 +6,39 @@ UV = UV_CACHE_DIR=.uv-cache uv
 UV_RUN = $(UV) run --no-sync
 
 MODULES = \
+	plugins/agents \
+	examples/apps/example-agents
+
+LEGACY_MODULES = \
 	plugins/agents/agent-toolkit \
 	plugins/agents/skills \
 	plugins/agents/model-client \
 	plugins/mcp/mcp-server \
 	plugins/mcp/mcp-client \
-	examples/apps/example-agents \
+	examples/plugins/example-skills \
+	examples/plugins/example-tool
+
+LEGACY_TEST_MODULES = \
+	plugins/agents/agent-toolkit \
+	plugins/mcp/mcp-server \
+	plugins/mcp/mcp-client \
 	examples/plugins/example-skills \
 	examples/plugins/example-tool
 
 MYPY_TARGETS = \
+	plugins/agents:hopeit_agents.agent_model \
+	examples/apps/example-agents:hopeit_agents.example_agents
+
+LEGACY_MYPY_TARGETS = \
 	plugins/agents/agent-toolkit:hopeit_agents.agent_toolkit \
 	plugins/agents/skills:hopeit_agents.skills \
 	plugins/agents/model-client:hopeit_agents.model_client \
 	plugins/mcp/mcp-server:hopeit_agents.mcp_server \
 	plugins/mcp/mcp-client:hopeit_agents.mcp_client \
-	examples/apps/example-agents:hopeit_agents.example_agents \
 	examples/plugins/example-skills:hopeit_agents.example_skills \
 	examples/plugins/example-tool:hopeit_agents.example_tool
+
+LEGACY_PYTHONPATH = plugins/agents/agent-toolkit/src:plugins/agents/skills/src:plugins/agents/model-client/src:plugins/mcp/mcp-server/src:plugins/mcp/mcp-client/src:examples/plugins/example-skills/src:examples/plugins/example-tool/src
 
 env:
 	$(UV) venv --seed --python $(PYTHONVERSION)
@@ -52,7 +67,7 @@ format:
 lint:
 	$(UV_RUN) ruff format --check $(MODULES:%=%/src/) $(MODULES:%=%/test/)
 	$(UV_RUN) ruff check $(MODULES:%=%/src/) $(MODULES:%=%/test/)
-	for target in $(MYPY_TARGETS); do \
+	set -e; for target in $(MYPY_TARGETS); do \
 		module=$${target%%:*}; \
 		package=$${target##*:}; \
 		PYTHONPATH=$$module/src MYPYPATH=$$module/src $(UV_RUN) mypy --namespace-packages -p $$package; \
@@ -60,8 +75,26 @@ lint:
 	done
 
 test:
-	for module in $(MODULES); do \
+	set -e; for module in $(MODULES); do \
 		PYTHONPATH=$$module/src $(UV_RUN) pytest -v $$module/test; \
+	done
+
+legacy-deps:
+	$(UV) sync --group legacy
+
+lint-legacy: legacy-deps
+	$(UV_RUN) ruff format --check $(LEGACY_MODULES:%=%/src/) $(LEGACY_MODULES:%=%/test/)
+	$(UV_RUN) ruff check $(LEGACY_MODULES:%=%/src/) $(LEGACY_MODULES:%=%/test/)
+	set -e; for target in $(LEGACY_MYPY_TARGETS); do \
+		module=$${target%%:*}; \
+		package=$${target##*:}; \
+		PYTHONPATH=$(LEGACY_PYTHONPATH) MYPYPATH=$(LEGACY_PYTHONPATH) $(UV_RUN) mypy --namespace-packages -p $$package; \
+		PYTHONPATH=$(LEGACY_PYTHONPATH) MYPYPATH=$(LEGACY_PYTHONPATH):$$module/test $(UV_RUN) mypy --namespace-packages $$module/test; \
+	done
+
+test-legacy: legacy-deps
+	set -e; for module in $(LEGACY_TEST_MODULES); do \
+		PYTHONPATH=$(LEGACY_PYTHONPATH) $(UV_RUN) pytest -v $$module/test; \
 	done
 
 ci:

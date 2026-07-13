@@ -1,20 +1,29 @@
-"""Settings helpers for the agent example app."""
+"""Application-owned run settings for the example agents."""
 
-# from hopeit.dataobjects import dataclass, dataobject
+from pathlib import Path
 
-# SETTINGS_KEY = "agent"
+from hopeit.dataobjects import dataclass, dataobject
+from pydantic_ai import UsageLimits
 
 
-# @dataobject
-# @dataclass
-# class AgentSettings:
-#     """Configurable defaults for the example agent."""
+@dataobject
+@dataclass
+class AgentRunSettings:
+    """Instructions and usage limits for one agent."""
 
-#     system_prompt: str | None = "You are a helpful agent built with hopeit_agents."
-#     enable_tools: bool = True
-#     tool_prompt_template: str | None = (
-#         "You can call the following MCP tools when helpful. "
-#         "Return tool calls with arguments that match the provided JSON schema.\n"
-#         "{tool_descriptions}"
-#     )
-#     include_tool_schemas_in_prompt: bool = True
+    instructions_path: str
+    request_limit: int = 10
+    tool_calls_limit: int = 20
+
+
+def load_instructions(settings: AgentRunSettings) -> str:
+    """Load agent instructions from the configured repository-relative path."""
+    return Path(settings.instructions_path).read_text(encoding="utf-8")
+
+
+def usage_limits(settings: AgentRunSettings) -> UsageLimits:
+    """Convert application settings into native agent usage limits."""
+    return UsageLimits(
+        request_limit=settings.request_limit,
+        tool_calls_limit=settings.tool_calls_limit,
+    )

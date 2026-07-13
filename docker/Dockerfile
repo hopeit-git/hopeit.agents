@@ -28,13 +28,10 @@ RUN uv venv --python 3.12 "${VIRTUAL_ENV}"
 COPY pyproject.toml uv.lock README.md ./
 COPY plugins ./plugins
 COPY examples ./examples
-COPY docker/entrypoint.sh ./docker/entrypoint.sh
 
-RUN uv sync --frozen --all-packages \
-    && uv pip install -r pyproject.toml \
-    && chmod +x docker/entrypoint.sh
+RUN uv sync --frozen --no-dev
 
-RUN test -x ${VIRTUAL_ENV}/bin/hopeit_mcp_server
+RUN test -x ${VIRTUAL_ENV}/bin/hopeit_server
 
 ##########################################
 # 4. Runner: slim runtime + prebuilt venv
@@ -50,5 +47,5 @@ USER appuser
 WORKDIR /app
 ENV PATH="${VIRTUAL_ENV}/bin:${PATH}"
 
-ENTRYPOINT ["hopeit_mcp_server", "run"]
-CMD ["--transport", "stdio", "--config-files", "plugins/mcp/mcp-server/config/dev-noauth-docker.json,plugins/mcp/mcp-server/config/plugin-config.json,examples/plugins/example-tool/config/plugin-config.json"]
+ENTRYPOINT ["hopeit_server", "run"]
+CMD ["--host", "0.0.0.0", "--port", "8020", "--path", "work", "--config-files", "examples/apps/example-agents/config/dev-noauth.json,examples/apps/example-agents/config/app-config.json"]

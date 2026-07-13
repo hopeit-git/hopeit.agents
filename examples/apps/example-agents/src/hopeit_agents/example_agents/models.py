@@ -1,61 +1,25 @@
-"""Run an agent conversation combining model completions and MCP tool calls."""
+"""Public Hopeit payloads for the example agents application."""
 
 from typing import Any
 
-from hopeit.app.logger import app_extra_logger
 from hopeit.dataobjects import dataclass, dataobject, field
-
-from hopeit_agents.mcp_client.models import (
-    ToolCallRecord,
-)
-from hopeit_agents.model_client.models import Conversation, Message
-from hopeit_agents.skills.models import SkillCallRecord
-
-logger, extra = app_extra_logger()
+from pydantic_ai.usage import RunUsage
 
 
 @dataobject
 @dataclass
 class AgentRequest:
-    """Incoming agent instruction."""
+    """Incoming natural-language task for an agent."""
 
     user_message: str
-    metadata: dict[str, Any] = field(default_factory=dict)
-
-
-@dataobject
-@dataclass
-class AgentResponse:
-    """Agent execution output."""
-
-    conversation: Conversation
-    assistant_message: Message
-    tool_calls: list[ToolCallRecord] = field(default_factory=list)
-
-
-@dataobject
-@dataclass
-class SkillsAgentResponse:
-    """Agent execution output."""
-
-    conversation: Conversation
-    assistant_message: Message
-    skill_calls: list[SkillCallRecord] = field(default_factory=list)
-
-
-@dataobject
-@dataclass
-class ExpertAgentRequest:
-    """Incoming agent instruction."""
-
-    user_message: str
+    conversation_id: str | None = None
     metadata: dict[str, Any] = field(default_factory=dict)
 
 
 @dataobject
 @dataclass
 class ExpressionValue:
-    """Result of evaluating a single expression handled by the expert agent."""
+    """One expression evaluated by the expert agent."""
 
     expr: str
     value: int
@@ -64,18 +28,49 @@ class ExpressionValue:
 @dataobject
 @dataclass
 class ExpertAgentResults:
-    """Aggregated expression results produced by the expert agent loop."""
+    """Structured output produced by the expert agent."""
 
     expr_values: list[ExpressionValue]
 
 
 @dataobject
 @dataclass
-class ExpertAgentResponse:
-    """Agent execution output."""
+class AgentUsage:
+    """Stable projection of model and tool usage for an API response."""
+
+    requests: int
+    tool_calls: int
+    input_tokens: int
+    output_tokens: int
+
+
+@dataobject
+@dataclass
+class AgentResponse:
+    """Human-readable output from the main agent."""
 
     conversation_id: str
-    results: ExpertAgentResults | None
-    error: str | None = None
-    assistant_message: Message | None = None
-    tool_calls: list[ToolCallRecord] = field(default_factory=list)
+    output: str
+    history_json: str
+    usage: AgentUsage
+
+
+@dataobject
+@dataclass
+class ExpertAgentResponse:
+    """Structured output from the standalone expert-agent endpoint."""
+
+    conversation_id: str
+    results: ExpertAgentResults
+    history_json: str
+    usage: AgentUsage
+
+
+def agent_usage(usage: RunUsage) -> AgentUsage:
+    """Project native usage into the public Hopeit response shape."""
+    return AgentUsage(
+        requests=usage.requests,
+        tool_calls=usage.tool_calls,
+        input_tokens=usage.input_tokens,
+        output_tokens=usage.output_tokens,
+    )

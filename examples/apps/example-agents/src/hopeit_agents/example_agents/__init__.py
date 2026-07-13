@@ -1,1 +1,1 @@
-"""Example MCP tool plugin."""
+"""Hopeit application demonstrating native agent delegation and tools."""
