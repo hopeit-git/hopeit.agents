@@ -39,9 +39,8 @@ network.
 For the OpenAI and Ollama launch commands, see the
 [`example-agents` README](examples/apps/example-agents/README.md).
 
-## Legacy projects
+## Migration documentation
 
-The previous agent toolkit, model client, skills, and MCP projects remain in the repository during
-their deprecation window, but they are not installed, imported, or tested by the default workflow.
-Use `make lint-legacy` and `make test-legacy` when explicitly maintaining them. See
-[`docs/DEPRECATIONS.md`](docs/DEPRECATIONS.md) for the complete list and replacement guidance.
+The custom agent toolkit, model client, skills registry, MCP projects, and their old examples were
+removed after the active application migrated. See [`docs/DEPRECATIONS.md`](docs/DEPRECATIONS.md)
+for the removed scope and replacement guidance.

@@ -14,5 +14,3 @@ docker run --rm -p 8020:8020 \
 To use Ollama, make the Ollama server reachable from the container and override the final config
 argument with `examples/apps/example-agents/config/app-config-ollama.json`. Update its base URL for
 your Docker networking setup if Ollama is not available at `localhost` inside the container.
-
-The files under `docker/mcp` are legacy assets and are not used by the default image.

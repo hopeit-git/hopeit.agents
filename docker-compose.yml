@@ -1,9 +1,0 @@
-services:
-  mcp-server:
-    image: hopeit-agents-mcp-server
-    build:
-      dockerfile: docker/Dockerfile
-
-networks:
-  default:
-    name: hopeit_agents

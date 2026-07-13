@@ -8,6 +8,3 @@ provider-independent.
 
 This project intentionally does not provide another agent loop, message hierarchy, tool
 registry, or tracing format. Those responsibilities remain with Pydantic AI.
-
-The legacy projects in the `agent-toolkit`, `model-client`, and `skills` child directories are
-separate distributions and are not included in this package.

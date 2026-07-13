@@ -1,4 +1,5 @@
-.PHONY: env clean-env deps legacy-deps format lint test lint-legacy test-legacy publish-plugin-pypi publish-plugin-pypi-test
+.PHONY: env clean-env sync-dev install-dev-nosync install-dev format lint test ci \
+	check-plugin-folder clean-dist-plugin dist-plugin publish-plugin-pypi publish-plugin-pypi-test
 
 PYTHONVERSION ?= 3.12
 
@@ -9,36 +10,9 @@ MODULES = \
 	plugins/agents \
 	examples/apps/example-agents
 
-LEGACY_MODULES = \
-	plugins/agents/agent-toolkit \
-	plugins/agents/skills \
-	plugins/agents/model-client \
-	plugins/mcp/mcp-server \
-	plugins/mcp/mcp-client \
-	examples/plugins/example-skills \
-	examples/plugins/example-tool
-
-LEGACY_TEST_MODULES = \
-	plugins/agents/agent-toolkit \
-	plugins/mcp/mcp-server \
-	plugins/mcp/mcp-client \
-	examples/plugins/example-skills \
-	examples/plugins/example-tool
-
 MYPY_TARGETS = \
 	plugins/agents:hopeit_agents.agent_model \
 	examples/apps/example-agents:hopeit_agents.example_agents
-
-LEGACY_MYPY_TARGETS = \
-	plugins/agents/agent-toolkit:hopeit_agents.agent_toolkit \
-	plugins/agents/skills:hopeit_agents.skills \
-	plugins/agents/model-client:hopeit_agents.model_client \
-	plugins/mcp/mcp-server:hopeit_agents.mcp_server \
-	plugins/mcp/mcp-client:hopeit_agents.mcp_client \
-	examples/plugins/example-skills:hopeit_agents.example_skills \
-	examples/plugins/example-tool:hopeit_agents.example_tool
-
-LEGACY_PYTHONPATH = plugins/agents/agent-toolkit/src:plugins/agents/skills/src:plugins/agents/model-client/src:plugins/mcp/mcp-server/src:plugins/mcp/mcp-client/src:examples/plugins/example-skills/src:examples/plugins/example-tool/src
 
 env:
 	$(UV) venv --seed --python $(PYTHONVERSION)
@@ -79,24 +53,6 @@ test:
 		PYTHONPATH=$$module/src $(UV_RUN) pytest -v $$module/test; \
 	done
 
-legacy-deps:
-	$(UV) sync --group legacy
-
-lint-legacy: legacy-deps
-	$(UV_RUN) ruff format --check $(LEGACY_MODULES:%=%/src/) $(LEGACY_MODULES:%=%/test/)
-	$(UV_RUN) ruff check $(LEGACY_MODULES:%=%/src/) $(LEGACY_MODULES:%=%/test/)
-	set -e; for target in $(LEGACY_MYPY_TARGETS); do \
-		module=$${target%%:*}; \
-		package=$${target##*:}; \
-		PYTHONPATH=$(LEGACY_PYTHONPATH) MYPYPATH=$(LEGACY_PYTHONPATH) $(UV_RUN) mypy --namespace-packages -p $$package; \
-		PYTHONPATH=$(LEGACY_PYTHONPATH) MYPYPATH=$(LEGACY_PYTHONPATH):$$module/test $(UV_RUN) mypy --namespace-packages $$module/test; \
-	done
-
-test-legacy: legacy-deps
-	set -e; for module in $(LEGACY_TEST_MODULES); do \
-		PYTHONPATH=$(LEGACY_PYTHONPATH) $(UV_RUN) pytest -v $$module/test; \
-	done
-
 ci:
 	$(UV) sync --all-packages --python $(PYTHONVERSION)
 	make lint
@@ -104,7 +60,7 @@ ci:
 
 check-plugin-folder:
 	@if [ -z "$(PLUGINFOLDER)" ]; then \
-		echo "PLUGINFOLDER must be provided, e.g. 'make dist-plugin PLUGINFOLDER=plugins/mcp/mcp-server'"; \
+		echo "PLUGINFOLDER must be provided, e.g. 'make dist-plugin PLUGINFOLDER=plugins/agents'"; \
 		exit 1; \
 	fi
 	@if [ ! -d "$(PLUGINFOLDER)" ]; then \

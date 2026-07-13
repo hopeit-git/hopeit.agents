@@ -1,7 +1,7 @@
-# Legacy Project Deprecations
+# Removed Legacy Projects
 
-The following projects are retained unchanged for a deprecation period but are no longer used by
-the active example or default dependency set:
+The migration removed the following superseded projects after the active example stopped using
+them:
 
 - `plugins/agents/agent-toolkit`
 - `plugins/agents/model-client`
@@ -13,7 +13,4 @@ the active example or default dependency set:
 - `docker/mcp`
 
 New applications should use `hopeit.engine` for API and application execution, Pydantic AI for
-agent runs and tools, and the new `hopeit-agents` project for shared Hopeit-specific integration.
-
-No removal date is set by this migration. Publishing, compatibility support, and eventual source
-removal remain separate maintenance decisions.
+agent runs and tools, and `hopeit-agents` for shared Hopeit-specific integration.

@@ -1,13 +1,16 @@
 # hopeit.agents Examples Migration to hopeit.engine + Pydantic AI
 
+> Status: completed. Legacy projects were kept read-only during the behavioral cutover and
+> removed after the new application, dependency graph, tests, documentation, and Docker runtime
+> were verified.
+
 ## TL;DR
 
 Convert the active examples in this repository in place to a single `hopeit.engine`
 application using Pydantic AI agents, typed outputs, and function tools. Remove all
 MCP hops from the example execution path and stop using the existing `hopeit.agents` plugins.
-Keep those plugin source directories for a deprecation period, but exclude them from the default
-workspace dependencies, default CI, Docker image, and active documentation. Do not edit the
-existing plugin projects during this migration.
+Keep those plugin source directories read-only during the behavioral cutover, exclude them from
+the active workspace, then remove them in the final cleanup.
 
 Add one deliberately small common project at `plugins/agents/`, published as `hopeit-agents`,
 only for Hopeit-specific integration that is genuinely shared by examples and applications.
@@ -56,19 +59,18 @@ Three repository-specific decisions follow from that boundary:
    minimal conversation support needed to demonstrate multi-turn execution; do not introduce a
    generic framework before a real API requires it.
 
-The instruction not to modify existing plugins means the directories below are treated as
-read-only legacy code. Deprecation happens by stopping their use from the root workspace,
-examples, CI, Docker, and active documentation—not by editing their source, package metadata, or
-README files.
+During the behavioral cutover, the existing plugins are treated as read-only legacy code. After
+the migrated application passes independently, final cleanup removes their source, dependency
+metadata, tests, and operational assets.
 
 Neutral copies of `Message`, `Conversation`, and tool-call objects are not the preferred starting
 point. Pydantic AI 2.9 already has model-independent message dataclasses and
 `ModelMessagesTypeAdapter`. Persist that format directly and define small, application-owned
 Hopeit DTOs only at HTTP boundaries.
 
-## Current Repository Findings
+## Pre-migration Repository Findings
 
-The default workspace currently installs and tests all of these libraries:
+Before migration, the default workspace installed and tested all of these libraries:
 
 - `plugins/agents/agent-toolkit`
 - `plugins/agents/model-client`
@@ -193,9 +195,8 @@ rebuilding an agent framework.
 
 ### Location, distribution, and import naming
 
-`plugins/agents/` already contains the legacy `agent-toolkit`, `model-client`, and `skills`
-projects. Make that directory itself the root of the new project; leave the child directories
-untouched:
+Make `plugins/agents/` the root of the new project during cutover. The legacy child directories
+shown below remain read-only until the final cleanup:
 
 ```text
 plugins/agents/
@@ -210,9 +211,9 @@ plugins/agents/
   test/
     test_agent_model.py
     test_conversations.py
-  agent-toolkit/                     # legacy, unchanged
-  model-client/                      # legacy, unchanged
-  skills/                            # legacy, unchanged
+  agent-toolkit/                     # removed during final cleanup
+  model-client/                      # removed during final cleanup
+  skills/                            # removed during final cleanup
 ```
 
 The distribution is `hopeit-agents` and its Python namespace is `hopeit_agents`. Do not name the
@@ -464,23 +465,17 @@ class StoredConversation:
    personal data. Make content capture an explicit environment policy.
 6. Do not build a custom trace model or trace database in this migration.
 
-### Phase 9: Stop using the existing plugins without modifying them
+### Phase 9: Remove the legacy projects
 
-Apply the following policy to all five current libraries and the two old example plugins:
+After the active dependency graph and migrated example pass independently:
 
-1. Treat every file inside the existing plugin projects as read-only for this migration. Do not
-   edit their source, tests, READMEs, configuration, or package metadata.
-2. Stop importing them from migrated examples.
-3. Remove them from root default dependencies, default `MODULES`, default mypy targets, the main
+1. Confirm migrated examples no longer import them.
+2. Remove them from root dependencies, `MODULES`, mypy targets, the main
    README quickstart, and the active Docker build/entrypoint.
-4. Preserve their source and tests exactly as they are. If legacy verification is still required,
-   add explicit root-level `make lint-legacy` and `make test-legacy` targets that are not part of
-   the default migrated workflow.
-5. Document the deprecation in the root README or `docs/DEPRECATIONS.md`, identifying
-   the replacement (`hopeit.engine`, Pydantic AI, and the new `hopeit-agents` project) and the
-   planned support/removal window.
-6. Make publishing/removal of the legacy distributions a separate maintenance decision. Do not
-   change them as part of implementing this plan.
+3. Remove their source directories, old tests, local package mappings, legacy dependency group,
+   MCP Docker assets, and legacy-only automation.
+4. Regenerate the lockfile and prove neither the removed distributions nor MCP SDK are installed.
+5. Record the removed scope and replacements in `docs/DEPRECATIONS.md`.
 
 Deprecated scope:
 
@@ -502,8 +497,7 @@ docker/mcp
 2. Update the active app example README to explain Pydantic AI delegation, inline tools, typed
    output, and configuration.
 3. Update the Dockerfile to run `hopeit_server`, not `hopeit_mcp_server`.
-4. Remove the MCP catalog and gateway from the active quickstart. Leave files inside existing
-   plugin projects untouched; root-level legacy documentation can point to them if needed.
+4. Remove the MCP catalog and gateway from the repository.
 5. Provide one curl example using the actual migrated `AgentRequest` schema.
 6. Document tracing configuration and whether message content capture is enabled.
 
@@ -600,9 +594,9 @@ Live-provider tests must be opt-in and excluded from default `make test`.
    - Add only the conversation support required by the chosen API.
    - Enable OTel instrumentation.
    - Rewrite README and Docker quickstart.
-6. **PR 6 — Root-level deprecation cutover**
-   - Document legacy libraries/examples and their removal window at repository root.
-   - Verify that no file inside an existing plugin project changed.
+6. **PR 6 — Legacy cleanup**
+   - Remove the legacy libraries, examples, dependency group, tests, and MCP Docker assets.
+   - Regenerate the lockfile and verify the remaining workspace independently.
 
 Conversation persistence may move earlier if multi-turn behavior is an acceptance requirement,
 but it must not block replacement of MCP and the custom agent loop.
@@ -613,7 +607,7 @@ but it must not block replacement of MCP and the custom agent loop.
   `hopeit_agents.model_client`, `hopeit_agents.skills`, `hopeit_agents.mcp_client`, or
   `hopeit_agents.mcp_server` module.
 - Default installation and lock resolution for active packages do not install the MCP SDK.
-- The main, expert, and skills Hopeit events use Pydantic AI.
+- The main and expert Hopeit events use Pydantic AI.
 - Random and sum tools execute in process and have typed, model-visible schemas.
 - Main-to-expert delegation has no MCP or local HTTP hop.
 - The expert returns `ExpertAgentResults` through Pydantic AI structured output.
@@ -679,7 +673,6 @@ Recheck these APIs immediately before implementation:
 - [Pydantic AI OpenTelemetry/Logfire integration](https://pydantic.dev/docs/ai/integrations/logfire/)
 - [Pydantic AI durable execution overview](https://pydantic.dev/docs/ai/integrations/durable_execution/overview/)
 - `examples/apps/example-agents` for the current agent behavior and prompts.
-- `examples/plugins/example-tool` and `examples/plugins/example-skills` for the duplicate tool logic.
 - Root `pyproject.toml`, `Makefile`, `README.md`, `docker/`, and `uv.lock` for the active dependency
   and operational cutover.
 
@@ -690,7 +683,6 @@ uv run python -c "import pydantic_ai; print(pydantic_ai.__version__)"
 uv run python -c "from pydantic_ai.models.ollama import OllamaModel; from pydantic_ai.models.openai import OpenAIChatModel; print(OllamaModel, OpenAIChatModel)"
 uv tree | rg 'hopeit-agents|mcp|pydantic-ai'
 rg -n 'hopeit_agents\.(agent_toolkit|model_client|skills|mcp_client|mcp_server)' examples/apps
-git diff --exit-code -- plugins/agents/agent-toolkit plugins/agents/model-client plugins/agents/skills plugins/mcp examples/plugins
 make lint
 make test
 ```

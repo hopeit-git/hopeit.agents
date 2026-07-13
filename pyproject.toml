@@ -4,7 +4,7 @@ version = "0.1.1"
 
 requires-python = ">=3.11"
 
-description = "Workspace for hopeit_agents plugins and examples"
+description = "Workspace for the hopeit-agents integration and examples"
 license = "Apache-2.0"
 authors = [
     { name = "Leo Smerling & Pablo Canto", email = "contact@hopeit.com.ar" },
@@ -37,39 +37,13 @@ package = false
 dev = [
     "mypy>=1.19.1",
     "pytest>=8.4.2",
-    "pytest-aiohttp>=1.1.0",
     "pytest-asyncio>=1.0.0,<1.1",
-    "pytest-mock>=3.15.1",
     "coverage>=7.13.4",
     "ruff>=0.15.2",
-    "isort>=8.0.0",
-    "aiohttp>=3.13.3",
-    "types-requests>=2.32.4",
-    "types-aiofiles>=25.1.0",
-    "types-redis>=4.6.0",
-    "uvloop>=0.22.1",
-]
-
-legacy = [
-    "hopeit-agents.agent-toolkit",
-    "hopeit-agents.skills",
-    "hopeit-agents.model-client",
-    "hopeit-agents.mcp-server",
-    "hopeit-agents.mcp-client",
-    "hopeit-agents-example-skills",
-    "hopeit-agents-example-tool",
-    "mcp[cli]>=1.26.0",
 ]
 
 [tool.uv.sources]
 hopeit-agents = { path = "plugins/agents" }
-hopeit-agents-agent-toolkit = { path = "plugins/agents/agent-toolkit" }
-hopeit-agents-skills = { path = "plugins/agents/skills" }
-hopeit-agents-model-client = { path = "plugins/agents/model-client" }
-hopeit-agents-mcp-server = { path = "plugins/mcp/mcp-server" }
-hopeit-agents-mcp-client = { path = "plugins/mcp/mcp-client" }
-hopeit-agents-example-tool = { path = "examples/plugins/example-tool" }
-hopeit-agents-example-skills = { path = "examples/plugins/example-skills" }
 hopeit-agents-example-agents = { path = "examples/apps/example-agents" }
 
 [tool.mypy]
@@ -93,14 +67,7 @@ pretty = true
 line-length = 100
 src = [
     "plugins/agents/src",
-    "plugins/agents/agent-toolkit/src",
-    "plugins/agents/skills/src",
-    "plugins/agents/model-client/src",
-    "plugins/mcp/mcp-server/src",
-    "plugins/mcp/mcp-client/src",
     "examples/apps/example-agents/src",
-    "examples/plugins/example-skills/src",
-    "examples/plugins/example-tool/src",
 ]
 
 [tool.ruff.lint]
