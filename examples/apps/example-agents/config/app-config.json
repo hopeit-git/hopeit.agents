@@ -28,12 +28,16 @@
     "main_agent": {
       "instructions_path": "examples/apps/example-agents/config/agents/main-agent-prompt.md",
       "request_limit": 12,
-      "tool_calls_limit": 20
+      "tool_calls_limit": 20,
+      "tool_retries": 1,
+      "output_retries": 3
     },
     "expert_agent": {
       "instructions_path": "examples/apps/example-agents/config/agents/expert-agent-prompt.md",
       "request_limit": 10,
-      "tool_calls_limit": 20
+      "tool_calls_limit": 20,
+      "tool_retries": 1,
+      "output_retries": 3
     },
     "agents.main_agent": {
       "response_timeout": 600

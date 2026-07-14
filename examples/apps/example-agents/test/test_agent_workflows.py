@@ -19,6 +19,7 @@ from hopeit_agents.example_agents.models import (
     ExpertAgentResults,
     ExpressionValue,
 )
+from hopeit_agents.example_agents.settings import AgentRunSettings, agent_retries
 
 OPENAI_CONFIG = Path("examples/apps/example-agents/config/app-config.json")
 OLLAMA_CONFIG = Path("examples/apps/example-agents/config/app-config-ollama.json")
@@ -51,12 +52,26 @@ def test_openai_and_ollama_configs_expose_the_same_events(
     assert openai_config.app_connections["expert-agent"].client == "hopeit.apps_client.AppsClient"
     assert ollama_config.app_connections["expert-agent"].client == "hopeit.apps_client.AppsClient"
     for app_config in (openai_config, ollama_config):
+        assert app_config.settings["main_agent"]["tool_retries"] == 1
+        assert app_config.settings["main_agent"]["output_retries"] == 3
+        assert app_config.settings["expert_agent"]["tool_retries"] == 1
+        assert app_config.settings["expert_agent"]["output_retries"] == 3
         connection = app_config.events["agents.main_agent"].connections[0]
         assert connection.app_connection == "expert-agent"
         assert connection.event == "agents.expert_agent"
         client = AppsClient(app_config, "expert-agent")
         assert client.settings.auth_strategy == ClientAuthStrategy.UNSECURED
         assert client.settings.ssl is False
+
+
+def test_agent_retry_settings_map_to_pydantic_ai_categories() -> None:
+    settings = AgentRunSettings(
+        instructions_path="instructions.md",
+        tool_retries=2,
+        output_retries=4,
+    )
+
+    assert agent_retries(settings) == {"tools": 2, "output": 4}
 
 
 @pytest.mark.asyncio

@@ -3,7 +3,7 @@
 from hopeit.app.api import event_api
 from hopeit.app.context import EventContext
 from hopeit.dataobjects import dataclass, dataobject
-from pydantic_ai import Agent
+from pydantic_ai import Agent, AgentRetries
 from pydantic_ai.models import Model
 
 from hopeit_agents.agent_model import SETTINGS_KEY, AgentModelSettings, build_agent_model
@@ -16,6 +16,7 @@ from hopeit_agents.example_agents.models import (
 )
 from hopeit_agents.example_agents.settings import (
     AgentRunSettings,
+    agent_retries,
     load_instructions,
     usage_limits,
 )
@@ -61,6 +62,8 @@ class ExpertAgentExecution:
 def create_expert_agent(
     model: Model,
     instructions: str,
+    *,
+    retries: AgentRetries | None = None,
 ) -> Agent[ExpertAgentDeps, ExpertAgentResults]:
     """Create the expert agent independently of its configured model provider."""
     return Agent(
@@ -70,6 +73,7 @@ def create_expert_agent(
         output_type=ExpertAgentResults,
         instructions=instructions,
         tools=[generate_random, sum_two_numbers],
+        retries=retries,
     )
 
 
@@ -92,6 +96,7 @@ async def execute_agent(
     agent = create_expert_agent(
         build_agent_model(payload.model_settings),
         payload.instructions,
+        retries=agent_retries(payload.run_settings),
     )
     result = await agent.run(
         payload.request.user_message,

@@ -2,119 +2,33 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "name": "agents",
+      "name": "Example agents (Ollama)",
       "type": "debugpy",
       "request": "launch",
       "module": "hopeit.server.web",
+      "env": {
+        "OLLAMA_MODEL_NAME": "gpt-oss:20b"
+      },
       "args": [
-        "--config-files=examples/apps/example-agents/config/dev-noauth.json,plugins/mcp/mcp-client/config/plugin-config.json,plugins/agents/model-client/config/plugin-config.json,examples/apps/example-agents/config/app-config.json",
+        "--host=127.0.0.1",
         "--port=8020",
-        "--api-auto=AgentExample;AgentExample;1.0"
+        "--config-files=examples/apps/example-agents/config/dev-noauth.json,examples/apps/example-agents/config/app-config-ollama.json",
+        "--api-auto=0.1;Hopeit Agents Example API;Cooperating Hopeit Engine and Pydantic AI agents"
       ],
       "cwd": "${workspaceFolder}",
-      "env": {
-        "AGENT_MODEL_API_BASE": "http://localhost:11434/v1",
-        "AGENT_MODEL_NAME": "gpt-oss:20b",
-        "AGENT_DEPLOYMENT_NAME": "",
-        "AGENT_API_VERSION": "",
-      },
       "console": "integratedTerminal",
       "justMyCode": false
     },
     {
-      "name": "agents+skills",
+      "name": "Example agents (OpenAI)",
       "type": "debugpy",
       "request": "launch",
       "module": "hopeit.server.web",
       "args": [
-        "--config-files=examples/apps/example-agents/config/dev-noauth.json,plugins/agents/skills/config/plugin-config.json,plugins/agents/model-client/config/plugin-config.json,examples/apps/example-agents/config/app-config.json,examples/plugins/example-skills/config/plugin-config.json",
+        "--host=127.0.0.1",
         "--port=8020",
-        "--api-auto=AgentExample;AgentExample;1.0"
-      ],
-      "cwd": "${workspaceFolder}",
-      "env": {
-        "AGENT_MODEL_API_BASE": "http://localhost:11434/v1",
-        "AGENT_MODEL_NAME": "gpt-oss:20b",
-        "AGENT_DEPLOYMENT_NAME": "",
-        "AGENT_API_VERSION": "",
-      },
-      "console": "integratedTerminal",
-      "justMyCode": false
-    },
-    {
-      "name": "sub-agents-mcp-server",
-      "type": "debugpy",
-      "request": "launch",
-      "module": "hopeit_agents.mcp_server.cli.server",
-      "env": {
-        "AGENT_MODEL_API_BASE": "http://localhost:11434/v1",
-        "AGENT_MODEL_NAME": "gpt-oss:20b",
-        "AGENT_DEPLOYMENT_NAME": "",
-        "AGENT_API_VERSION": "",
-      },
-      "args": [
-        "run",
-        "--host",
-        "127.0.0.1",
-        "--port",
-        "8767",
-        "--config-files",
-        "plugins/mcp/mcp-server/config/dev-noauth.json,plugins/mcp/mcp-server/config/plugin-config.json,examples/apps/example-agents/config/app-config.json",
-        "--enabled-groups",
-        "sub-agents"
-      ],
-      "cwd": "${workspaceFolder}",
-      "console": "integratedTerminal",
-      "justMyCode": false
-    },
-    {
-      "name": "mcp_server",
-      "type": "debugpy",
-      "request": "launch",
-      "module": "hopeit_agents.mcp_server.cli.server",
-      "args": [
-        "run",
-        "--host",
-        "127.0.0.1",
-        "--port",
-        "8765",
-        "--config-files",
-        "plugins/mcp/mcp-server/config/dev-noauth.json,plugins/mcp/mcp-server/config/plugin-config.json,examples/plugins/example-tool/config/plugin-config.json"
-      ],
-      "cwd": "${workspaceFolder}",
-      "console": "integratedTerminal",
-      "justMyCode": false
-    },
-    {
-      "name": "mcp_server_stdio",
-      "type": "debugpy",
-      "request": "launch",
-      "module": "hopeit_agents.mcp_server.cli.server",
-      "args": [
-        "run",        
-        "--transport",
-        "stdio",        
-        "--config-files",
-        "plugins/mcp/mcp-server/config/dev-noauth.json,plugins/mcp/mcp-server/config/plugin-config.json,examples/plugins/example-tool/config/plugin-config.json"
-      ],
-      "cwd": "${workspaceFolder}",
-      "console": "integratedTerminal",
-      "justMyCode": false
-    },
-    {
-      "name": "mcp_client",
-      "type": "debugpy",
-      "request": "launch",
-      "module": "hopeit.server.web",
-      "args": [
-        "--host",
-        "127.0.0.1",
-        "--port",
-        "8766",
-        "--config-files",
-        "plugins/mcp/mcp-server/config/dev-noauth.json,plugins/mcp/mcp-client/config/plugin-config.json",
-        "--api-auto",
-        "mcp_client;mcp_client;1.0"
+        "--config-files=examples/apps/example-agents/config/dev-noauth.json,examples/apps/example-agents/config/app-config.json",
+        "--api-auto=0.1;Hopeit Agents Example API;Cooperating Hopeit Engine and Pydantic AI agents"
       ],
       "cwd": "${workspaceFolder}",
       "console": "integratedTerminal",

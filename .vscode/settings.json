@@ -1,10 +1,8 @@
 {
     "makefile.configureOnOpen": false,
     "python.testing.pytestArgs": [
-        "plugins/mcp/mcp-server/test",
-        "plugins/mcp/mcp-client/test",
-        "plugins/agents/model-client/test",
-        "plugins/agents/agent-toolkit/test"
+        "plugins/agents/test",
+        "examples/apps/example-agents/test"
     ],
     "python.testing.unittestEnabled": false,
     "python.testing.pytestEnabled": true

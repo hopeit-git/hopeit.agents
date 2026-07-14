@@ -57,6 +57,10 @@ tool. Pydantic AI derives both tool schemas from their signatures and docstrings
 Agent and tool code does not contain provider branches. Both configurations use the shared
 `agent_model` setting and `hopeit_agents.agent_model.build_agent_model()`.
 
+Each agent also has independent `request_limit`, `tool_calls_limit`, `tool_retries`, and
+`output_retries` settings. Retry budgets are passed to Pydantic AI by category; output retries let
+the model correct an invalid structured response without weakening the declared output type.
+
 For OpenAI:
 
 ```bash
@@ -66,7 +70,8 @@ export OPENAI_MODEL_NAME="your-openai-model"
 uv run --no-sync hopeit_server run \
   --host 127.0.0.1 \
   --port 8020 \
-  --config-files examples/apps/example-agents/config/dev-noauth.json,examples/apps/example-agents/config/app-config.json
+  --config-files examples/apps/example-agents/config/dev-noauth.json,examples/apps/example-agents/config/app-config.json \
+  --api-auto "0.1;Hopeit Agents Example API;Cooperating Hopeit Engine and Pydantic AI agents"
 ```
 
 For a local Ollama server:
@@ -77,7 +82,8 @@ export OLLAMA_MODEL_NAME="your-installed-ollama-model"
 uv run --no-sync hopeit_server run \
   --host 127.0.0.1 \
   --port 8020 \
-  --config-files examples/apps/example-agents/config/dev-noauth.json,examples/apps/example-agents/config/app-config-ollama.json
+  --config-files examples/apps/example-agents/config/dev-noauth.json,examples/apps/example-agents/config/app-config-ollama.json \
+  --api-auto "0.1;Hopeit Agents Example API;Cooperating Hopeit Engine and Pydantic AI agents"
 ```
 
 The Ollama configuration expects its OpenAI-compatible endpoint at

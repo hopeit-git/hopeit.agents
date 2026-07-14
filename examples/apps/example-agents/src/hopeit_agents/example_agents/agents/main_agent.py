@@ -7,7 +7,7 @@ from hopeit.app.api import event_api
 from hopeit.app.client import app_call
 from hopeit.app.context import EventContext
 from hopeit.dataobjects import dataclass, dataobject
-from pydantic_ai import Agent
+from pydantic_ai import Agent, AgentRetries
 from pydantic_ai.models import Model
 
 from hopeit_agents.agent_model import SETTINGS_KEY, AgentModelSettings, build_agent_model
@@ -22,6 +22,7 @@ from hopeit_agents.example_agents.models import (
 )
 from hopeit_agents.example_agents.settings import (
     AgentRunSettings,
+    agent_retries,
     load_instructions,
     usage_limits,
 )
@@ -82,13 +83,19 @@ class MainAgentExecution:
     usage: AgentUsage
 
 
-def create_main_agent(model: Model, instructions: str) -> Agent[None, ExpressionPlan]:
+def create_main_agent(
+    model: Model,
+    instructions: str,
+    *,
+    retries: AgentRetries | None = None,
+) -> Agent[None, ExpressionPlan]:
     """Create the main agent that produces a typed expert-agent task."""
     return Agent(
         model,
         name="main_agent",
         output_type=ExpressionPlan,
         instructions=instructions,
+        retries=retries,
     )
 
 
@@ -111,6 +118,7 @@ async def plan_expression(
     agent = create_main_agent(
         build_agent_model(payload.model_settings),
         payload.main_instructions,
+        retries=agent_retries(payload.main_settings),
     )
     result = await agent.run(
         payload.request.user_message,
